@@ -39,7 +39,8 @@ import traci  # noqa
 
 def create_qtable(num_states, num_actions):
     #qtable = np.zeros((num_states, num_actions), dtype =int)
-    qtable= np.random.randint(5, size=(num_states, num_actions))
+    #NOT SURE HOW EXACTLY WE NEED TO INITIALIZE THIS
+    qtable= np.random.randint(10, size=(num_states, num_actions))
     return qtable
 
 def calc_density(num_halt):
@@ -65,8 +66,15 @@ def get_state():
 
     #density_wA0 = calc_density(halt_wA0)
     #density_nA0 = calc_density(halt_nA0)
-    density_horiz = calc_density(halt_wA0) + calc_density(halt_eA0)
-    density_vert = calc_density(halt_nA0) + calc_density(halt_sA0)
+    
+    ### Below is two different ways of computing the density
+    ### 1
+    #density_horiz = calc_density(halt_wA0) + calc_density(halt_eA0)
+    #density_vert = calc_density(halt_nA0) + calc_density(halt_sA0)
+    
+    ### 2 
+    density_horiz = calc_density(halt_wA0 + halt_eA0)
+    density_vert = calc_density(halt_nA0 + halt_sA0)
 
     phase_A = traci.trafficlight.getPhase("A") #phase of the traffic light: 0 or 2
 
@@ -77,11 +85,11 @@ def get_state():
     state = np.where(np.all(states==state_values, axis=1))[0][0]
     return state
     
-def choose_action(state, qtable):
+def choose_action(state, qtable, epsilon): #NEED TO IMPLEMENT E-GREEDY HERE
     action = np.argmax(qtable[state,:]) #returns the action with the max value at current state
     #action = (randint(0, 1))
     return action
-    #need to implement e-greedy here
+    
     
 def calc_reward():
     halt_horiz = traci.lanearea.getLastStepHaltingNumber("wA0") + traci.lanearea.getLastStepHaltingNumber("eA0")
@@ -92,9 +100,12 @@ def calc_reward():
     reward = -1*halt_total
     return reward
 
-def update_table(qtable, reward, state, action):
+def update_table(qtable, reward, state, action): #NEED TO IMPLEMENT REAL Q-FUNCTION
     qtable[state,action] += reward
     return qtable
+
+def check_goal(): #NEED TO IMPLEMENT THIS TO END TRAINING 
+    return true
 
 def generate_routefile(N):
     random.seed()  # make tests reproducible by random.seed(some_number)
@@ -180,7 +191,8 @@ def run(algorithm):
 
         while traci.simulation.getMinExpectedNumber() > 0:
             traci.trafficlight.setPhase("A", 2)
-            action = choose_action(state, qtable)
+            epsilon = 1
+            action = choose_action(state, qtable, epsion)
             if action == 0:
                 traci.trafficlight.setPhase("A", 2)
             else:
@@ -196,8 +208,8 @@ def run(algorithm):
             reward = calc_reward()
             total_reward += reward
             qtable = update_table(qtable, reward, state, action)
-            #print(qtable)
-            print(reward)
+            print(qtable)
+            #print(reward)
             #qtable[state,action] = reward
             state = next_state
 
