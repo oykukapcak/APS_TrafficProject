@@ -1,8 +1,8 @@
 <!--for output-->
 <additional>
-<!-- 
 
-	<tlLogic id="6" type="static" programID="5" offset="0">
+
+	<!--<tlLogic id="6" type="static" programID="5" offset="0" >
 	        <phase duration="40" state="rrrrGGGggrrrrGGGgg"/>
 	        <phase duration="5"  state="rrrryyyyyrrrryyyyy"/>
 	        <phase duration="40" state="GGggrrrrrGGggrrrrr"/>
@@ -11,13 +11,17 @@
 	
 	<timedEvent type="SaveTLSStates" source="0" dest="cross.out"/>
 	<timedEvent type="SaveTLSStates" source="6" dest="cross.out"/>
-	
- -->
- 	<e1Detector id="nA0" lane="n2A_0" pos="-20" freq="10" file="cross.out"/>
- 	<e1Detector id="nA1" lane="n2A_1" pos="-20" freq="10" file="cross.out"/>
+	-->
+ 
+ 	<!--<e1Detector id="nA0" lane="n2A_0" pos="-20" freq="10" file="cross.out"/>
+ 	<e1Detector id="nA1" lane="n2A_1" pos="-20" freq="10" file="cross.out"/>-->
  	
- 	<laneAreaDetector id="wA0" lanes="w2A_0" pos="150" endPos="180" freq="10" file="cross.out"/> 
- 	
+ 	<laneAreaDetector id="wA0" lanes="w2A_0" pos="155" endPos="185" freq="10" file="cross.out"/> 
+ 	<laneAreaDetector id="nA0" lanes="n2A_0" pos="155" endPos="185" freq="10" file="cross.out"/> 
+ 	<laneAreaDetector id="eA0" lanes="e2A_0" pos="155" endPos="185" freq="10" file="cross.out"/> 
+ 	<laneAreaDetector id="sA0" lanes="s2A_0" pos="155" endPos="185" freq="10" file="cross.out"/> 
+
+
  	<timedEvent type="SaveTLSStates" source="A" dest="cross.out"/>
    
 </additional>
