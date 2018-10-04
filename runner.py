@@ -86,7 +86,15 @@ def get_state():
     return state
     
 def choose_action(state, qtable, epsilon): #NEED TO IMPLEMENT E-GREEDY HERE
-    action = np.argmax(qtable[state,:]) #returns the action with the max value at current state
+    chance = np.random.random()
+    
+    if epsilon <= chance:
+        print("IF")
+        action = np.argmax(qtable[state,:]) #returns the action with the max value at current state
+    else:
+        print("ELSE")
+        action = random.randint(0, np.size(qtable, 1)-1)
+
     #action = (randint(0, 1))
     return action
     
@@ -188,11 +196,12 @@ def run(algorithm):
         qtable = create_qtable(18,2) #6 states, 2 actions
         total_reward = 0
         state = get_state()
+        epsilon = 0.9
 
         while traci.simulation.getMinExpectedNumber() > 0:
             traci.trafficlight.setPhase("A", 2)
-            epsilon = 1
-            action = choose_action(state, qtable, epsion)
+            
+            action = choose_action(state, qtable, epsilon)
             if action == 0:
                 traci.trafficlight.setPhase("A", 2)
             else:
@@ -208,10 +217,12 @@ def run(algorithm):
             reward = calc_reward()
             total_reward += reward
             qtable = update_table(qtable, reward, state, action)
-            print(qtable)
+            #print(qtable)
             #print(reward)
             #qtable[state,action] = reward
             state = next_state
+            epsilon -= 0.01 #this might be something else
+        
 
     else: #original  
         while traci.simulation.getMinExpectedNumber() > 0:
