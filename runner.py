@@ -85,14 +85,14 @@ def get_state():
     state = np.where(np.all(states==state_values, axis=1))[0][0]
     return state
     
-def choose_action(state, qtable, epsilon): #NEED TO IMPLEMENT E-GREEDY HERE
+def choose_action(state, qtable, epsilon): 
     chance = np.random.random()
     
     if epsilon <= chance:
-        print("IF")
+        #print("IF")
         action = np.argmax(qtable[state,:]) #returns the action with the max value at current state
     else:
-        print("ELSE")
+        #print("ELSE")
         action = random.randint(0, np.size(qtable, 1)-1)
 
     #action = (randint(0, 1))
@@ -108,9 +108,13 @@ def calc_reward():
     reward = -1*halt_total
     return reward
 
-def update_table(qtable, reward, state, action): #NEED TO IMPLEMENT REAL Q-FUNCTION
-    qtable[state,action] += reward
+def update_table(qtable, reward, state, action, alpha, gamma, next_state): #NOT SURE ABOUT THE Q-FUNCTION
+    next_action = action = np.argmax(qtable[next_state,:])
+    q = (1-alpha)*qtable[state,action] + alpha*(reward+gamma*(qtable[next_state][next_action]))
+    qtable[state,action] = q
+    print(q)
     return qtable
+
 
 def check_goal(): #NEED TO IMPLEMENT THIS TO END TRAINING 
     return true
@@ -197,6 +201,9 @@ def run(algorithm):
         total_reward = 0
         state = get_state()
         epsilon = 0.9
+        alpha = 0.01
+        gamma = 0.01
+
 
         while traci.simulation.getMinExpectedNumber() > 0:
             traci.trafficlight.setPhase("A", 2)
@@ -216,7 +223,7 @@ def run(algorithm):
             next_state = get_state()
             reward = calc_reward()
             total_reward += reward
-            qtable = update_table(qtable, reward, state, action)
+            qtable = update_table(qtable, reward, state, action, alpha, gamma, next_state)
             #print(qtable)
             #print(reward)
             #qtable[state,action] = reward
