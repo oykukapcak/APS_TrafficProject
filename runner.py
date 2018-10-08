@@ -40,7 +40,7 @@ import traci  # noqa
 def create_qtable(num_states, num_actions):
     #qtable = np.zeros((num_states, num_actions), dtype =int)
     #NOT SURE HOW EXACTLY WE NEED TO INITIALIZE THIS
-    qtable= np.random.randint(10, size=(num_states, num_actions))
+    qtable= 10 * np.random.random_sample((num_states, num_actions))
     return qtable
 
 def calc_density(num_halt):
@@ -109,10 +109,11 @@ def calc_reward():
     return reward
 
 def update_table(qtable, reward, state, action, alpha, gamma, next_state): #NOT SURE ABOUT THE Q-FUNCTION
-    next_action = action = np.argmax(qtable[next_state,:])
+    next_action = np.argmax(qtable[next_state,:])
     q = (1-alpha)*qtable[state,action] + alpha*(reward+gamma*(qtable[next_state][next_action]))
-    qtable[state,action] = q
+    qtable[state][action] = q
     print(q)
+    print(qtable)
     return qtable
 
 
@@ -201,8 +202,8 @@ def run(algorithm):
         total_reward = 0
         state = get_state()
         epsilon = 0.9
-        alpha = 0.01
-        gamma = 0.01
+        alpha = 0.01 #1
+        gamma = 0.01 #0
 
 
         while traci.simulation.getMinExpectedNumber() > 0:
@@ -230,6 +231,8 @@ def run(algorithm):
             state = next_state
             epsilon -= 0.01 #this might be something else
         
+        print("total reward")
+        print(total_reward)
 
     else: #original  
         while traci.simulation.getMinExpectedNumber() > 0:
