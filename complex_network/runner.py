@@ -127,28 +127,41 @@ def generate_routefile(N):
         print("""<routes>
         <vType id="typeCar" accel="0.8" decel="4.5" sigma="0.5" length="5" minGap="2.5" maxSpeed="16.67" guiShape="passenger"/>
 
-        <route id="NS" edges="n2A A2s" />
-        <route id="WE" edges="w2A A2e" />
-        <route id="SN" edges="s2A A2n" />
-        <route id="EW" edges="e2A A2w" />""", file=routes)
+        <route id="NS1" edges="n12A A2s1" />
+        <route id="SN1" edges="s12A A2n1" />
+        <route id="NS2" edges="n22B B2s2" />
+        <route id="SN2" edges="s22B B2n2" />
+        <route id="WE" edges="w2A A2B B2e" />
+        <route id="EW" edges="e2B B2A A2w" />""", file=routes)
         
         vehNr = 0
         
         # demand in each direction per time step
-        p_NS = 1. / 10
-        p_SN = 1. / 20
+        # CHANGE THIS!!!!!
+        p_NS1 = 3. / 20
+        p_SN1 = 3. / 20
+        p_NS2 = 3. / 20
+        p_SN2 = 3. / 20
     	p_WE = 3. / 20
     	p_EW = 3. / 20
         
         for i in range(N):
-        	if random.uniform(0, 1) < p_NS:
-        		print('    <vehicle id="car_%i" type="typeCar" route="NS" depart="%i"/>' % (vehNr,i), file=routes)
+            if random.uniform(0, 1) < p_NS2:
+                print('    <vehicle id="car_%i" type="typeCar" route="NS2" depart="%i"/>' % (vehNr,i), file=routes)
+                vehNr += 1
+
+        	if random.uniform(0, 1) < p_NS1:
+        		print('    <vehicle id="car_%i" type="typeCar" route="NS1" depart="%i"/>' % (vehNr,i), file=routes)
         		vehNr += 1
         		
-        	if random.uniform(0, 1) < p_SN:
-        		print('    <vehicle id="car_%i" type="typeCar" route="SN" depart="%i"/>' % (vehNr,i), file=routes)
+        	if random.uniform(0, 1) < p_SN1:
+        		print('    <vehicle id="car_%i" type="typeCar" route="SN1" depart="%i"/>' % (vehNr,i), file=routes)
         		vehNr += 1
-        		
+
+            if random.uniform(0, 1) < p_SN2:
+                print('    <vehicle id="car_%i" type="typeCar" route="SN2" depart="%i"/>' % (vehNr,i), file=routes)
+                vehNr += 1
+
         	if random.uniform(0,1) < p_WE:
         		print('    <vehicle id="car_%i" type="typeCar" route="WE" depart="%i"/>' % (vehNr,i), file=routes)
         		vehNr += 1
@@ -156,6 +169,13 @@ def generate_routefile(N):
         	if random.uniform(0,1) < p_EW:
         		print('    <vehicle id="car_%i" type="typeCar" route="EW" depart="%i"/>' % (vehNr,i), file=routes)
         		vehNr += 1
+
+        print("SN1 %f" % p_SN1)
+        print("SN2 %f" % p_SN2)   
+        print("NS1 %f" % p_NS1)
+        print("NS2 %f" % p_NS2) 
+        print("WE %f" % p_WE)
+        print("EW %f" % p_EW)        
         		
         print("</routes>", file=routes)
 
@@ -259,4 +279,4 @@ def simulate_n_steps(N,gui_opt):
     # subprocess and then the python script connects and runs
     traci.start([sumoBinary, "-c", "data/cross.sumocfg","--tripinfo-output", "tripinfo.xml"]) # add ,"--emission-output","emissions.xml" if you want emissions report to be printed
     
-    run(1) #enter the number for the algorithm to run
+    run(3) #enter the number for the algorithm to run
