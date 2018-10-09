@@ -21,7 +21,7 @@
  	<laneAreaDetector id="BA0" lanes="B2A_0" pos="140" endPos="170" freq="10" file="cross.out"/> 
  	<laneAreaDetector id="s1A0" lanes="s12A_0" pos="155" endPos="185" freq="10" file="cross.out"/> 
  	<laneAreaDetector id="eB0" lanes="e2B_0" pos="155" endPos="185" freq="10" file="cross.out"/> 
- 	<laneAreaDetector id="n2B0" lanes="n22B_0" pos="155" endPos="185" freq="10" file="cross.out"/> 
+ 	<laneAreaDetector id="n2B0" lanes="n22B_0" pos="155" endPos="185" freq="10" file="cross.out"/> 	
  	<laneAreaDetector id="AB0" lanes="A2B_0" pos="140" endPos="170" freq="10" file="cross.out"/> 
  	<laneAreaDetector id="s2B0" lanes="s22B_0" pos="155" endPos="185" freq="10" file="cross.out"/> 
 

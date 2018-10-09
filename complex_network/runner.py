@@ -26,6 +26,9 @@ import optparse
 import random
 import numpy as np
 from random import randint
+import itertools
+from itertools import product
+
 
 # we need to import python modules from the $SUMO_HOME/tools directory
 if 'SUMO_HOME' in os.environ:
@@ -56,13 +59,17 @@ def calc_density(num_halt):
 def get_state():
     state = 0
     #density = 0
-    num_detectors = 2
-    num_phases =2
+    num_detectors = 8
+    num_phases = 4
 
     halt_wA0 = traci.lanearea.getLastStepHaltingNumber("wA0") #number of halting cars on wA0
-    halt_nA0 = traci.lanearea.getLastStepHaltingNumber("nA0")
-    halt_eA0 = traci.lanearea.getLastStepHaltingNumber("eA0") #number of halting cars on wA0
-    halt_sA0 = traci.lanearea.getLastStepHaltingNumber("sA0")
+    halt_n1A0 = traci.lanearea.getLastStepHaltingNumber("n1A0")
+    halt_BA0 = traci.lanearea.getLastStepHaltingNumber("BA0") 
+    halt_s1A0 = traci.lanearea.getLastStepHaltingNumber("s1A0")
+    halt_eB0 = traci.lanearea.getLastStepHaltingNumber("eB0") 
+    halt_n2B0 = traci.lanearea.getLastStepHaltingNumber("n2B0")
+    halt_AB0 = traci.lanearea.getLastStepHaltingNumber("AB0") 
+    halt_s2B0 = traci.lanearea.getLastStepHaltingNumber("s2B0")
 
     #density_wA0 = calc_density(halt_wA0)
     #density_nA0 = calc_density(halt_nA0)
@@ -73,16 +80,38 @@ def get_state():
     #density_vert = calc_density(halt_nA0) + calc_density(halt_sA0)
     
     ### 2 
-    density_horiz = calc_density(halt_wA0 + halt_eA0)
-    density_vert = calc_density(halt_nA0 + halt_sA0)
+    #calculate densities at different directions
+    density_horiz1 = calc_density(halt_wA0 + halt_BA0)
+    density_vert1 = calc_density(halt_n1A0 + halt_s1A0)
+    density_horiz2 = calc_density(halt_AB0 + halt_eB0)
+    density_vert2 = calc_density(halt_n2B0 + halt_s2B0)
 
     phase_A = traci.trafficlight.getPhase("A") #phase of the traffic light: 0 or 2
+    phase_B = traci.trafficlight.getPhase("B") #phase of the traffic light: 0 or 2
 
-    #THIS IS A VERY STUPID WAY OF DEFINING STATES
-    #FIND SOMETHING BETTER 
-    states = np.array([[0, 0, 0], [0, 1, 0], [0, 2, 0], [1, 0, 0], [1, 1, 0], [1, 2, 0], [2, 0, 0], [2, 1, 0], [2, 2, 0], [0, 0, 2], [0, 1, 2], [0, 2, 2], [1, 0, 2], [1, 1, 2], [1, 2, 2], [2, 0, 2], [2, 1, 2], [2, 2, 2]])
-    state_values = np.array([density_horiz, density_vert, phase_A])
+    #create state matrix
+
+    #define combinations of densities
+    density_combs = np.array(list(itertools.product([0,1,2], repeat=4)))
+    densities = np.tile(density_combs, (4,1))
+    #define combinations of phases
+    phase_combs = np.array([[0,0], [0,2], [2,0], [2,2]])
+    phases = np.zeros((len(densities), 2), dtype=int)
+
+    t = 0
+    for i in phase_combs:
+        a = np.tile(i,(81,1))
+        phases[81*t:81*(t+1)] = a
+        t +=1
+
+    #genereate the state matrix
+    states = np.concatenate((densities, phases), axis = 1)
+
+    #states = np.array([[0, 0, 0, 0, 0], [0, 1, 0], [0, 2, 0], [1, 0, 0], [1, 1, 0], [1, 2, 0], [2, 0, 0], [2, 1, 0], [2, 2, 0], [0, 0, 2], [0, 1, 2], [0, 2, 2], [1, 0, 2], [1, 1, 2], [1, 2, 2], [2, 0, 2], [2, 1, 2], [2, 2, 2]])
+    state_values = np.array([density_horiz1, density_vert1, density_horiz2, density_vert2, phase_A, phase_B])
+    #print(state_values)
     state = np.where(np.all(states==state_values, axis=1))[0][0]
+    #print("state %i" %state)
     return state
     
 def choose_action(state, qtable, epsilon): 
@@ -100,11 +129,21 @@ def choose_action(state, qtable, epsilon):
     
     
 def calc_reward():
-    halt_horiz = traci.lanearea.getLastStepHaltingNumber("wA0") + traci.lanearea.getLastStepHaltingNumber("eA0")
-    halt_vert = traci.lanearea.getLastStepHaltingNumber("nA0") + traci.lanearea.getLastStepHaltingNumber("sA0")
+    #compute total number of halting cars 
+    halt_total = traci.lanearea.getLastStepHaltingNumber("wA0") + \
+        traci.lanearea.getLastStepHaltingNumber("n1A0") + \
+        traci.lanearea.getLastStepHaltingNumber("BA0") + \
+        traci.lanearea.getLastStepHaltingNumber("s1A0") + \
+        traci.lanearea.getLastStepHaltingNumber("eB0") + \
+        traci.lanearea.getLastStepHaltingNumber("n2B0") + \
+        traci.lanearea.getLastStepHaltingNumber("AB0") + \
+        traci.lanearea.getLastStepHaltingNumber("s2B0")
+
+    #halt_horiz = traci.lanearea.getLastStepHaltingNumber("wA0") + traci.lanearea.getLastStepHaltingNumber("eA0")
+    #halt_vert = traci.lanearea.getLastStepHaltingNumber("nA0") + traci.lanearea.getLastStepHaltingNumber("sA0")
     #halt_wA0 = traci.lanearea.getLastStepHaltingNumber("wA0") #number of halting cars on wA0
     #reward = -1*halt_wA0 #this is gonna be total normally
-    halt_total = halt_horiz + halt_vert
+    #halt_total = halt_horiz + halt_vert
     reward = -1*halt_total
     return reward
 
@@ -112,8 +151,8 @@ def update_table(qtable, reward, state, action, alpha, gamma, next_state): #NOT 
     next_action = np.argmax(qtable[next_state,:])
     q = (1-alpha)*qtable[state,action] + alpha*(reward+gamma*(qtable[next_state][next_action]))
     qtable[state][action] = q
-    print(q)
-    print(qtable)
+    #print(q)
+    #print(qtable)
     return qtable
 
 
@@ -168,14 +207,7 @@ def generate_routefile(N):
         		
         	if random.uniform(0,1) < p_EW:
         		print('    <vehicle id="car_%i" type="typeCar" route="EW" depart="%i"/>' % (vehNr,i), file=routes)
-        		vehNr += 1
-
-        print("SN1 %f" % p_SN1)
-        print("SN2 %f" % p_SN2)   
-        print("NS1 %f" % p_NS1)
-        print("NS2 %f" % p_NS2) 
-        print("WE %f" % p_WE)
-        print("EW %f" % p_EW)        
+        		vehNr += 1      
         		
         print("</routes>", file=routes)
 
@@ -218,7 +250,7 @@ def run(algorithm):
     elif algorithm == 1: #q-learning
         print("q-learning")
         #create "q-table"
-        qtable = create_qtable(18,2) #6 states, 2 actions
+        qtable = create_qtable(324,4) #6 states, 2 actions
         total_reward = 0
         state = get_state()
         epsilon = 0.9
@@ -228,12 +260,21 @@ def run(algorithm):
 
         while traci.simulation.getMinExpectedNumber() > 0:
             traci.trafficlight.setPhase("A", 2)
+            traci.trafficlight.setPhase("B", 2)
             
             action = choose_action(state, qtable, epsilon)
             if action == 0:
                 traci.trafficlight.setPhase("A", 2)
+                traci.trafficlight.setPhase("B", 2)
+            elif action == 1:
+                traci.trafficlight.setPhase("A", 0)
+                traci.trafficlight.setPhase("B", 2)
+            elif action == 2:
+                traci.trafficlight.setPhase("A", 2)
+                traci.trafficlight.setPhase("B", 0)
             else:
                 traci.trafficlight.setPhase("A", 0)
+                traci.trafficlight.setPhase("B", 0)
 
             for i in range(10): #changing this makes difference
 
@@ -246,13 +287,12 @@ def run(algorithm):
             total_reward += reward
             qtable = update_table(qtable, reward, state, action, alpha, gamma, next_state)
             #print(qtable)
-            #print(reward)
+            print("reward %i" % reward)
             #qtable[state,action] = reward
             state = next_state
             epsilon -= 0.01 #this might be something else
         
-        print("total reward")
-        print(total_reward)
+        print("total reward %i" % total_reward)
 
     else: #original  
         while traci.simulation.getMinExpectedNumber() > 0:
@@ -279,4 +319,4 @@ def simulate_n_steps(N,gui_opt):
     # subprocess and then the python script connects and runs
     traci.start([sumoBinary, "-c", "data/cross.sumocfg","--tripinfo-output", "tripinfo.xml"]) # add ,"--emission-output","emissions.xml" if you want emissions report to be printed
     
-    run(3) #enter the number for the algorithm to run
+    run(1) #enter the number for the algorithm to run
