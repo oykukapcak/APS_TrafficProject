@@ -166,7 +166,7 @@ def plot_rewards(rewards):
     plt.show()
 
 def generate_routefile(N):
-    random.seed()  # make tests reproducible by random.seed(some_number)
+    random.seed(42)  # make tests reproducible by random.seed(some_number)
     
     with open("data/cross.rou.xml", "w") as routes:
         print("""<routes>
@@ -298,7 +298,7 @@ def run(algorithm):
             rewards.append(reward)
             qtable = update_table(qtable, reward, state, action, alpha, gamma, next_state)
             #print(qtable)
-            print("reward %i" % reward)
+            #print("reward %i" % reward)
             #qtable[state,action] = reward
             state = next_state
             epsilon -= 0.01 #this might be something else
@@ -344,4 +344,4 @@ def simulate_n_steps(N,gui_opt):
     # subprocess and then the python script connects and runs
     traci.start([sumoBinary, "-c", "data/cross.sumocfg","--tripinfo-output", "tripinfo.xml"]) # add ,"--emission-output","emissions.xml" if you want emissions report to be printed
     
-    run(2) #enter the number for the algorithm to run
+    run(1) #enter the number for the algorithm to run
