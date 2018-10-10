@@ -26,6 +26,7 @@ import optparse
 import random
 import numpy as np
 from random import randint
+import matplotlib.pyplot as plt
 
 # we need to import python modules from the $SUMO_HOME/tools directory
 if 'SUMO_HOME' in os.environ:
@@ -112,13 +113,18 @@ def update_table(qtable, reward, state, action, alpha, gamma, next_state): #NOT 
     next_action = np.argmax(qtable[next_state,:])
     q = (1-alpha)*qtable[state,action] + alpha*(reward+gamma*(qtable[next_state][next_action]))
     qtable[state][action] = q
-    print(q)
-    print(qtable)
+    #print(q)
+    #print(qtable)
     return qtable
 
 
 def check_goal(): #NEED TO IMPLEMENT THIS TO END TRAINING 
     return true
+
+def plot_rewards(rewards):
+    plt.plot(rewards)   
+    plt.ylabel('Reward')
+    plt.show()
 
 def generate_routefile(N):
     random.seed()  # make tests reproducible by random.seed(some_number)
@@ -163,39 +169,39 @@ def run(algorithm):
     """execute the TraCI control loop"""
     step = 0
      
-    if algorithm == 0: #hardcoded
-        print("hardcoded")
+    # if algorithm == 0: #hardcoded
+    #     print("hardcoded")
      
-        ##
-        vehiclesPast = 0 #need to count like that cause otherwise it only checks per 10 secs
-        #traci.trafficlight.setPhase("A", 2) #trial 1
-        traci.trafficlight.setPhase("A", 0) #trial 2
-        ##
-        while traci.simulation.getMinExpectedNumber() > 0:
-            #trial 1 (induction loops)
-            # if traci.trafficlight.getPhase("A") == 2:
-            #     # if there are more than 2 cars have passed the induction loop (thus waiting), make it green
-            #     if traci.inductionloop.getLastStepVehicleNumber("nA1") > 0 or traci.inductionloop.getLastStepVehicleNumber("nA0") > 0:
-            #         vehiclesPast += 1
-            #     if vehiclesPast > 2:
-            #         traci.trafficlight.setPhase("A", 0)
-            #         vehiclesPast = 0
-            #     else:
-            #         traci.trafficlight.setPhase("A", 2)
-            ##
+    #     ##
+    #     vehiclesPast = 0 #need to count like that cause otherwise it only checks per 10 secs
+    #     #traci.trafficlight.setPhase("A", 2) #trial 1
+    #     traci.trafficlight.setPhase("A", 0) #trial 2
+    #     ##
+    #     while traci.simulation.getMinExpectedNumber() > 0:
+    #         #trial 1 (induction loops)
+    #         # if traci.trafficlight.getPhase("A") == 2:
+    #         #     # if there are more than 2 cars have passed the induction loop (thus waiting), make it green
+    #         #     if traci.inductionloop.getLastStepVehicleNumber("nA1") > 0 or traci.inductionloop.getLastStepVehicleNumber("nA0") > 0:
+    #         #         vehiclesPast += 1
+    #         #     if vehiclesPast > 2:
+    #         #         traci.trafficlight.setPhase("A", 0)
+    #         #         vehiclesPast = 0
+    #         #     else:
+    #         #         traci.trafficlight.setPhase("A", 2)
+    #         ##
 
-            #trial 2 lane area detectors 
-            if traci.trafficlight.getPhase("A") == 0:
-                if traci.lanearea.getLastStepHaltingNumber("wA0") > 2:
-                     traci.trafficlight.setPhase("A", 2)
-                else:
-                     traci.trafficlight.setPhase("A", 0)
+    #         #trial 2 lane area detectors 
+    #         if traci.trafficlight.getPhase("A") == 0:
+    #             if traci.lanearea.getLastStepHaltingNumber("wA0") > 2:
+    #                  traci.trafficlight.setPhase("A", 2)
+    #             else:
+    #                  traci.trafficlight.setPhase("A", 0)
 
-            traci.simulationStep()
+    #         traci.simulationStep()
 
-            step += 1
+    #         step += 1
 
-    elif algorithm == 1: #q-learning
+    if algorithm == 1: #q-learning
         print("q-learning")
         #create "q-table"
         qtable = create_qtable(18,2) #6 states, 2 actions
@@ -204,7 +210,7 @@ def run(algorithm):
         epsilon = 0.9
         alpha = 0.01 #1
         gamma = 0.01 #0
-
+        rewards = []
 
         while traci.simulation.getMinExpectedNumber() > 0:
             traci.trafficlight.setPhase("A", 2)
@@ -224,6 +230,7 @@ def run(algorithm):
             next_state = get_state()
             reward = calc_reward()
             total_reward += reward
+            rewards.append(reward)
             qtable = update_table(qtable, reward, state, action, alpha, gamma, next_state)
             #print(qtable)
             #print(reward)
@@ -231,14 +238,30 @@ def run(algorithm):
             state = next_state
             epsilon -= 0.01 #this might be something else
         
-        print("total reward")
-        print(total_reward)
+        print("total reward: %i" % total_reward)
+        rewards = np.hstack(rewards)
+        plot_rewards(rewards)
+        #print(rewards)
 
     else: #original  
+        total_reward = 0
+        rewards = []
         while traci.simulation.getMinExpectedNumber() > 0:
-            traci.simulationStep()
-            step += 1
-        
+            #traci.simulationStep()
+            #step += 1
+            for i in range(10): #changing this makes difference
+
+                traci.simulationStep()
+
+            step += 10
+            reward = calc_reward()
+            #print("reward: %i" % reward)
+            total_reward += reward
+            rewards.append(reward)
+
+        print("total reward: %i" % total_reward)
+        rewards = np.hstack(rewards)
+        plot_rewards(rewards)
 
         
     traci.close()
@@ -259,4 +282,4 @@ def simulate_n_steps(N,gui_opt):
     # subprocess and then the python script connects and runs
     traci.start([sumoBinary, "-c", "data/cross.sumocfg","--tripinfo-output", "tripinfo.xml"]) # add ,"--emission-output","emissions.xml" if you want emissions report to be printed
     
-    run(1) #enter the number for the algorithm to run
+    run(0) #enter the number for the algorithm to run
