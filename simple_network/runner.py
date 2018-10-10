@@ -121,9 +121,9 @@ def update_table(qtable, reward, state, action, alpha, gamma, next_state): #NOT 
 def check_goal(): #NEED TO IMPLEMENT THIS TO END TRAINING 
     return true
 
-def plot_rewards(rewards):
-    plt.plot(rewards)   
-    plt.ylabel('Reward')
+def plot(waiting_cars):
+    plt.plot(waiting_cars)   
+    plt.ylabel('Number of waiting cars')
     plt.show()
 
 def generate_routefile(N):
@@ -210,7 +210,9 @@ def run(algorithm):
         epsilon = 0.9
         alpha = 0.01 #1
         gamma = 0.01 #0
-        rewards = []
+        waiting_cars_array = []
+        time_step = 0
+        waiting_cars = 0
 
         while traci.simulation.getMinExpectedNumber() > 0:
             traci.trafficlight.setPhase("A", 2)
@@ -226,11 +228,22 @@ def run(algorithm):
                 traci.simulationStep()
 
             step += 10
+            time_step += 1
 
             next_state = get_state()
             reward = calc_reward()
             total_reward += reward
-            rewards.append(reward)
+
+            #to plot the total number of cars waiting for every 100 time steps
+            if time_step <10:
+                waiting_cars += -1*reward
+
+            else:
+                waiting_cars += -1*reward
+                waiting_cars_array.append(waiting_cars)
+                waiting_cars = 0
+                time_step = 0
+            
             qtable = update_table(qtable, reward, state, action, alpha, gamma, next_state)
             #print(qtable)
             #print(reward)
@@ -239,13 +252,16 @@ def run(algorithm):
             epsilon -= 0.01 #this might be something else
         
         print("total reward: %i" % total_reward)
-        rewards = np.hstack(rewards)
-        plot_rewards(rewards)
+        waiting_cars_array = np.hstack(waiting_cars_array)
+        plot(waiting_cars_array)
         #print(rewards)
 
     else: #original  
         total_reward = 0
-        rewards = []
+        waiting_cars_array = []
+        time_step = 0
+        waiting_cars = 0
+
         while traci.simulation.getMinExpectedNumber() > 0:
             #traci.simulationStep()
             #step += 1
@@ -254,14 +270,25 @@ def run(algorithm):
                 traci.simulationStep()
 
             step += 10
+            time_step += 1
             reward = calc_reward()
             #print("reward: %i" % reward)
             total_reward += reward
-            rewards.append(reward)
+
+            #to plot the total number of cars waiting for every 100 time steps
+            if time_step <10:
+                waiting_cars += -1*reward
+
+            else:
+                waiting_cars += -1*reward
+                #print("waiting_cars %i" % waiting_cars)
+                waiting_cars_array.append(waiting_cars)
+                waiting_cars = 0
+                time_step = 0
 
         print("total reward: %i" % total_reward)
-        rewards = np.hstack(rewards)
-        plot_rewards(rewards)
+        waiting_cars_array = np.hstack(waiting_cars_array)
+        plot(waiting_cars_array)
 
         
     traci.close()
