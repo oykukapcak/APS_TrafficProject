@@ -1,3 +1,3 @@
 import runner
 
-runner.simulate_n_steps(100000,'nogui')
+runner.simulate_n_steps(100,'nogui')
