@@ -55,24 +55,27 @@ def calc_density(num_halt):
     return density
 
 
-def get_state():
-    halt_wA0 = traci.lanearea.getLastStepHaltingNumber("wA0")
-    halt_nA0 = traci.lanearea.getLastStepHaltingNumber("nA0")
-    halt_eA0 = traci.lanearea.getLastStepHaltingNumber("eA0")
-    halt_sA0 = traci.lanearea.getLastStepHaltingNumber("sA0")
+def get_state(halt_areas, traffic_lights):
+    # TODO: Make scalable, not sure how this function works
+    halt = []
+    phase = []
 
-    ### 2 
-    density_horiz = calc_density(halt_wA0 + halt_eA0)
-    density_vert = calc_density(halt_nA0 + halt_sA0)
+    for i in range(len(halt_areas)):
+        halt[i] = traci.lanearea.getLastStepHaltingNumber(halt_areas[i])
 
-    phase_A = traci.trafficlight.getPhase("A")  # phase of the traffic light: 0 or 2
+    ### How will we make this non hardcoded? idk, just commented out for now
+    density_horiz = 0; # calc_density(halt_wA0 + halt_eA0)
+    density_vert = 0; # calc_density(halt_nA0 + halt_sA0)
+
+    for i in range(len(traffic_lights)):
+        phase[i] = traci.trafficlight.getPhase(traffic_lights[i])
 
     # THIS IS A VERY STUPID WAY OF DEFINING STATES
     # FIND SOMETHING BETTER
     states = np.array(
         [[0, 0, 0], [0, 1, 0], [0, 2, 0], [1, 0, 0], [1, 1, 0], [1, 2, 0], [2, 0, 0], [2, 1, 0], [2, 2, 0], [0, 0, 2],
          [0, 1, 2], [0, 2, 2], [1, 0, 2], [1, 1, 2], [1, 2, 2], [2, 0, 2], [2, 1, 2], [2, 2, 2]])
-    state_values = np.array([density_horiz, density_vert, phase_A])
+    state_values = np.array([density_horiz, density_vert, phase[0]])
     state = np.where(np.all(states == state_values, axis=1))[0][0]
     # print("-------------- CURRENT STATE -----------------------")
     # print(np.where(np.all(states == state_values, axis=1)))
@@ -90,27 +93,25 @@ def choose_action(state, qtable, epsilon):
     return action
 
 
-def calc_reward():
-    halt_horiz = traci.lanearea.getLastStepHaltingNumber("wA0") + traci.lanearea.getLastStepHaltingNumber("eA0")
-    halt_vert = traci.lanearea.getLastStepHaltingNumber("nA0") + traci.lanearea.getLastStepHaltingNumber("sA0")
-    # halt_wA0 = traci.lanearea.getLastStepHaltingNumber("wA0") #number of halting cars on wA0
-    # reward = -1*halt_wA0 #this is gonna be total normally
-    halt_total = halt_horiz + halt_vert
-    reward = -1 * halt_total
-    return reward
+def calc_reward(halt_areas):
+    total_halt = 0
+
+    for i in range(len(halt_areas)):
+        total_halt += traci.lanearea.getLastStepHaltingNumber(halt_areas[i])
+
+    return -1 * total_halt
 
 
 def update_table(qtable, reward, state, action, alpha, gamma, next_state):  # NOT SURE ABOUT THE Q-FUNCTION
     next_action = np.argmax(qtable[next_state, :])
     q = (1 - alpha) * qtable[state, action] + alpha * (reward + gamma * (qtable[next_state][next_action]))
     qtable[state][action] = q
-    # print(q)
-    # print(qtable)
+
     return qtable
 
 
-def check_goal():  # NEED TO IMPLEMENT THIS TO END TRAINING
-    return true
+# def check_goal():  # NEED TO IMPLEMENT THIS TO END TRAINING
+#     return true
 
 
 def plot(waiting_cars):
@@ -120,6 +121,7 @@ def plot(waiting_cars):
 
 
 def generate_routefile(N):
+    #TODO: Make scalable, not sure how
     random.seed()  # make tests reproducible by random.seed(some_number)
 
     with open("data/cross.rou.xml", "w") as routes:
@@ -168,23 +170,26 @@ def start_q_learning(epsilon, alpha, gamma, wait_time):
     time_step = 0
     step = 0
 
-    # somehow get these from environment
-    traffic_lights = ["A"]
+    # TODO: somehow get these from environment
+    traffic_lights = ["A"]                  # simple network
+    # traffic_lights = ["A", "B"]           # complex network
+    halt_areas = ["wA0", "nA0", "eA0", "sA0"]                                       # simple network
+    # halt_areas = ["wA0", "n1A0", "BA0", "s1A0", "eB0", "n2B0", "AB0", "s2B0"]     # complex network
     # num_of_actions = np.power(2, len(traffic_lights))
 
     qtable = create_qtable(len(traffic_lights))
-    state = get_state()
+    state = get_state(halt_areas, traffic_lights)
 
     while traci.simulation.getMinExpectedNumber() > 0:
         action = choose_action(state, qtable, epsilon)
         bin_action = [int(x) for x in list('{0:0b}'.format(action))]
 
-        for i in range(len(traffic_lights)):
+        for i in range(len(bin_action)):
             if bin_action[i] == 1:
-                set_phase = 2
-            else:
-                set_phase = 0
-            traci.trafficlight.setPhase(traffic_lights[i], set_phase)
+                bin_action[i] = 2
+
+        for i in range(len(traffic_lights)):
+            traci.trafficlight.setPhase(traffic_lights[i], bin_action[i])
 
         for i in range(wait_time):  # changing this makes difference
             traci.simulationStep()
@@ -192,8 +197,8 @@ def start_q_learning(epsilon, alpha, gamma, wait_time):
         step += wait_time
         time_step += 1
 
-        next_state = get_state()
-        reward = calc_reward()
+        next_state = get_state(halt_areas, traffic_lights)
+        reward = calc_reward(halt_areas)
         total_reward += reward
 
         # to plot the total number of cars waiting for every 100 time steps
@@ -255,7 +260,6 @@ def start_original():
     print("total reward: %i" % total_reward)
     waiting_cars_array = np.hstack(waiting_cars_array)
     plot(waiting_cars_array)
-
 
 
 def run(algorithm):
