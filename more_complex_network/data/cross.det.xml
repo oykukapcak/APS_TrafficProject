@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!-- generated on Mon Oct 15 17:05:05 2018 by Eclipse SUMO netedit Version 1.0.0
+<configuration xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://sumo.dlr.de/xsd/netconvertConfiguration.xsd">
+
+    <input>
+        <sumo-net-file value="/Users/oykukapcak/PycharmProjects/APS_TrafficProject/more_complex_network/data/cross.net.xml"/>
+    </input>
+
+    <output>
+        <output-file value="/Users/oykukapcak/PycharmProjects/APS_TrafficProject/more_complex_network/data/cross.net.xml"/>
+    </output>
+
+    <processing>
+        <offset.disable-normalization value="true"/>
+        <lefthand value="false"/>
+    </processing>
+
+    <junctions>
+        <no-turnarounds value="true"/>
+        <junctions.corner-detail value="5"/>
+        <junctions.limit-turn-speed value="5.5"/>
+        <rectangular-lane-cut value="false"/>
+    </junctions>
+
+    <pedestrian>
+        <walkingareas value="false"/>
+    </pedestrian>
+
+</configuration>
+-->
+
+<additional>
+    <e2Detector id="e2Detector_A2B_0_5" length="30.00" lane="A2B_0" pos="355.00" freq="10.00" file="e2Detector_A2B_0_5.xml"/>
+    <e2Detector id="e2Detector_A2D_0_10" length="30.00" lane="A2D_0" pos="155.00" freq="10.00" file="e2Detector_A2D_0_10.xml"/>
+    <e2Detector id="e2Detector_B2A_0_3" length="30.00" lane="B2A_0" pos="355.00" freq="10.00" file="e2Detector_B2A_0_3.xml"/>
+    <e2Detector id="e2Detector_B2C_0_15" length="30.00" lane="B2C_0" pos="155.00" freq="10.00" file="e2Detector_B2C_0_15.xml"/>
+    <e2Detector id="e2Detector_C2B_0_7" length="30.00" lane="C2B_0" pos="148.84" freq="10.00" file="e2Detector_C2B_0_7.xml"/>
+    <e2Detector id="e2Detector_C2D_0_11" length="30.00" lane="C2D_0" pos="355.00" freq="10.00" file="e2Detector_C2D_0_11.xml"/>
+    <e2Detector id="e2Detector_D2A_0_2" length="30.00" lane="D2A_0" pos="155.00" freq="10.00" file="e2Detector_D2A_0_2.xml"/>
+    <e2Detector id="e2Detector_D2C_0_13" length="30.00" lane="D2C_0" pos="355.00" freq="10.00" file="e2Detector_D2C_0_13.xml"/>
+    <e2Detector id="e2Detector_e12B_0_6" length="30.00" lane="e12B_0" pos="155.00" freq="10.00" file="e2Detector_e12B_0_6.xml"/>
+    <e2Detector id="e2Detector_e22C_0_8" length="30.00" lane="e22C_0" pos="155.00" freq="10.00" file="e2Detector_e22C_0_8.xml"/>
+    <e2Detector id="e2Detector_n12A_0_1" length="30.00" lane="n12A_0" pos="155.00" freq="10.00" file="e2Detector_n12A_0_1.xml"/>
+    <e2Detector id="e2Detector_n22B_0_4" length="30.00" lane="n22B_0" pos="155.00" freq="10.00" file="e2Detector_n22B_0_4.xml"/>
+    <e2Detector id="e2Detector_s12D_0_12" length="30.00" lane="s12D_0" pos="155.00" freq="10.00" file="e2Detector_s12D_0_12.xml"/>
+    <e2Detector id="e2Detector_s22C_0_14" length="30.00" lane="s22C_0" pos="155.00" freq="10.00" file="e2Detector_s22C_0_14.xml"/>
+    <e2Detector id="e2Detector_w12A_0_0" length="30.00" lane="w12A_0" pos="155.00" freq="10.00" file="e2Detector_w12A_0_0.xml"/>
+    <e2Detector id="e2Detector_w22D_0_9" length="30.00" lane="w22D_0" pos="155.00" freq="10.00" file="e2Detector_w22D_0_9.xml"/>
+</additional>
