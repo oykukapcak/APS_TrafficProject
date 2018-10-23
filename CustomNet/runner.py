@@ -197,7 +197,7 @@ def start_q_learning(epsilon, alpha, gamma, wait_time):
 
     # Traffic lights and lane area detectors are found from xml files. Directories might change.
     traffic_lights = []
-    with open("data/CustomNet.xml") as nodes:
+    with open("data/CustomNet.net.xml") as nodes:
         lines = nodes.readlines()
 
     for line in lines:
@@ -210,7 +210,7 @@ def start_q_learning(epsilon, alpha, gamma, wait_time):
     # traffic_lights = ["A", "B"]           # complex network
 
     halt_areas = []
-    with open("data/CustomNet.xml") as areas:
+    with open("data/CustomNet.net.xml") as areas:
         lines = areas.readlines()
 
     for line in lines:
@@ -285,32 +285,32 @@ def start_original():
     step = 0
 
     while traci.simulation.getMinExpectedNumber() > 0:
-        # traci.simulationStep()
+        traci.simulationStep()
         # step += 1
-        for i in range(10):  # changing this makes difference
+        # for i in range(10):  # changing this makes difference
 
-            traci.simulationStep()
+        #     traci.simulationStep()
 
-        step += 10
-        time_step += 1
-        reward = calc_reward()
-        # print("reward: %i" % reward)
-        total_reward += reward
+    #     step += 10
+    #     time_step += 1
+    #     reward = calc_reward()
+    #     # print("reward: %i" % reward)
+    #     total_reward += reward
 
-        # to plot the total number of cars waiting for every 100 time steps
-        if time_step < 10:
-            waiting_cars += -1 * reward
+    #     # to plot the total number of cars waiting for every 100 time steps
+    #     if time_step < 10:
+    #         waiting_cars += -1 * reward
 
-        else:
-            waiting_cars += -1 * reward
-            # print("waiting_cars %i" % waiting_cars)
-            waiting_cars_array.append(waiting_cars)
-            waiting_cars = 0
-            time_step = 0
+    #     else:
+    #         waiting_cars += -1 * reward
+    #         # print("waiting_cars %i" % waiting_cars)
+    #         waiting_cars_array.append(waiting_cars)
+    #         waiting_cars = 0
+    #         time_step = 0
 
-    print("total reward: %i" % total_reward)
-    waiting_cars_array = np.hstack(waiting_cars_array)
-    plot(waiting_cars_array)
+    # print("total reward: %i" % total_reward)
+    # waiting_cars_array = np.hstack(waiting_cars_array)
+    # plot(waiting_cars_array)
 
 
 def run(algorithm):
@@ -341,4 +341,4 @@ def simulate_n_steps(N, gui_opt):
     traci.start([sumoBinary, "-c", "data/CustomNet.sumocfg", "--tripinfo-output",
                  "tripinfo.xml"])  # add ,"--emission-output","emissions.xml" if you want emissions report to be printed
 
-    run(1)  # enter the number for the algorithm to run
+    run(0)  # enter the number for the algorithm to run
