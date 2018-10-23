@@ -28,6 +28,9 @@ import numpy as np
 from random import randint
 import matplotlib.pyplot as plt
 import itertools
+from solver import genetic 
+from solver import belief as blf
+
 
 # we need to import python modules from the $SUMO_HOME/tools directory
 if 'SUMO_HOME' in os.environ:
@@ -50,7 +53,6 @@ def create_qtable(num_states, num_actions):
     qtable= 10 * np.random.random_sample((num_states, num_actions))
     return qtable
 
-
 def calc_density(num_halt):
     if num_halt < 2:  # low density
         density = 0
@@ -60,7 +62,6 @@ def calc_density(num_halt):
         density = 2
 
     return density
-
 
 def create_state_matrix(halt_areas, traffic_lights):
     # halt = []
@@ -85,7 +86,6 @@ def create_state_matrix(halt_areas, traffic_lights):
     states = np.concatenate((densities, phases), axis=1)
     return states
 
-
 def get_state(state_matrix, halt_areas, traffic_lights):
     # TODO: Make scalable, not sure how this function works
     halt = []
@@ -106,7 +106,6 @@ def get_state(state_matrix, halt_areas, traffic_lights):
     # print(np.where(np.all(states == state_values, axis=1)))
     return state
 
-
 def choose_action(state, qtable, epsilon):
     chance = np.random.random()
 
@@ -117,7 +116,6 @@ def choose_action(state, qtable, epsilon):
 
     return action
 
-
 def calc_reward(halt_areas):
     total_halt = 0
 
@@ -125,7 +123,6 @@ def calc_reward(halt_areas):
         total_halt += traci.lanearea.getLastStepHaltingNumber(halt_areas[i])
 
     return -1 * total_halt
-
 
 def update_table(qtable, reward, state, action, alpha, gamma, next_state):  # NOT SURE ABOUT THE Q-FUNCTION
     next_action = np.argmax(qtable[next_state, :])
@@ -143,7 +140,6 @@ def plot(waiting_cars):
     plt.plot(waiting_cars)
     plt.ylabel('Number of waiting cars')
     plt.show()
-
 
 def generate_routefile(N):
     #TODO: Make scalable, not sure how
@@ -184,7 +180,6 @@ def generate_routefile(N):
                 vehNr += 1
 
         print("</routes>", file=routes)
-
 
 def start_q_learning(epsilon, alpha, gamma, wait_time):
     print("start q-learning")
@@ -276,7 +271,6 @@ def start_q_learning(epsilon, alpha, gamma, wait_time):
     plot(waiting_cars_array)
     # print(rewards)
 
-
 def start_original():
     waiting_cars_array = []
     total_reward = 0
@@ -312,12 +306,86 @@ def start_original():
     # waiting_cars_array = np.hstack(waiting_cars_array)
     # plot(waiting_cars_array)
 
+def start_ga():
+    """execute the TraCI control loop"""
+    traffic_light = ["gneJ4", "gneJ5", "gneJ6", "gneJ9", "gneJ10", "gneJ11"]
+
+    step = 0
+    halting_cars = []
+    time_step = 0
+    waiting_cars = 0
+    belief = blf.Belief()
+    time_cycle = 1
+
+    while traci.simulation.getMinExpectedNumber() > 0:
+        traci.simulationStep()
+        step += 1
+        # time_step += 1
+        # halt_wA0 = traci.lanearea.getLastStepHaltingNumber("wA0")  # number of halting cars on wA0
+        # halt_nA0 = traci.lanearea.getLastStepHaltingNumber("nA0")
+        # halt_eA0 = traci.lanearea.getLastStepHaltingNumber("eA0")  # number of halting cars on wA0
+        # halt_sA0 = traci.lanearea.getLastStepHaltingNumber("sA0")
+        
+        ## MOVE
+        belief.addCars(traci.simulation.getDepartedIDList())
+        belief.removeCars(traci.simulation.getArrivedIDList())
+        # print('departed', traci.simulation.getDepartedIDList())
+        # print('arrived', traci.simulation.getArrivedIDList())
+
+        
+        if step % time_cycle  == 0:
+            ### MOVE 
+            if belief.hasCars():
+                car = belief.cars[0]
+                lane_pos = traci.vehicle.getLanePosition(car)
+                lane = traci.vehicle.getLaneID(car)
+                route = traci.vehicle.getRoute(car)
+                speed = traci.vehicle.getSpeedWithoutTraCI(car)
+                next_tls = traci.vehicle.getNextTLS(car)
+                acspeed = traci.vehicle.getSpeed(car)
+                maxspeed = traci.lane.getMaxSpeed(lane)
+                # print('{}, tls {}, speed {}, max {}, '.format(car, next_tls, speed, maxspeed))
+                belief.calculate_load(time_cycle)
+                # print('total load: {}, {}'.format(np.sum(list(belief.load.values())), belief.load))
+
+                tls = 'gneJ6'
+                program = traci.trafficlight.getRedYellowGreenState(tls)
+                phase = traci.trafficlight.getPhase('gneJ6')
+                dur = traci.trafficlight.getPhaseDuration(tls)
+
+                # print('{}, tls {}, speed {}, max {}, '.format(car, next_tls, speed, maxspeed))
+                # belief.calculate_load(time_cycle)
+                print('prog {}, phase {}, dur {}'.format(program, phase, dur))
+                # phase = solve(halt_nA0, halt_eA0, halt_sA0, halt_wA0)
+
+            # traci.trafficlight.setPhase("A", phase)
+        
+    traci.close()
+    sys.stdout.flush()
+    # plt.plot(halting_cars)
+    # plt.xlabel("time")
+    # plt.ylabel("#waiting cars")
+    # plt.show()
+
+def ga_config():
+    genetic.POPULATION_SIZE = 100
+    genetic.CHROMOSOME_SIZE = 1
+
+def solve(n, e, s, w):
+    ga = genetic.Genetic()
+    ga.initial_population(chromosome_params=[n, e, s, w])
+    best, evo = ga.approximate()
+    return 2*best.chromosome[0]
+
+
 
 def run(algorithm):
     """execute the TraCI control loop"""
 
     if algorithm == 1:  # q-learning
         start_q_learning(0.9, 0.01, 0.01, 10)
+    elif algorithm == 2:
+        start_ga()
     else:  # original
         start_original()
 
@@ -341,4 +409,4 @@ def simulate_n_steps(N, gui_opt):
     traci.start([sumoBinary, "-c", "data/CustomNet.sumocfg", "--tripinfo-output",
                  "tripinfo.xml"])  # add ,"--emission-output","emissions.xml" if you want emissions report to be printed
 
-    run(0)  # enter the number for the algorithm to run
+    run(2)  # enter the number for the algorithm to run

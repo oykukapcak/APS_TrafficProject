@@ -721,7 +721,7 @@
         <lane id="gneE9_0" index="0" speed="50.00" length="182.40" shape="804.80,-292.80 804.80,-110.40"/>
         <lane id="gneE9_1" index="1" speed="50.00" length="182.40" shape="801.60,-292.80 801.60,-110.40"/>
     </edge>
-
+    <!-- TODO remove these -->
     <tlLogic id="gneJ10" type="static" programID="0" offset="0">
         <phase duration="42" state="GGgrrGGG"/>
         <phase duration="3"  state="yyyrryyy"/>
