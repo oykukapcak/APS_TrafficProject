@@ -238,6 +238,15 @@ def start_q_learning(epsilon, alpha, gamma, wait_time):
             if bin_action[i] == 1:
                 bin_action[i] = 2
 
+        length = len(traffic_lights)
+        if len(bin_action) < length:
+            a = np.zeros(length, int)
+            j = length - 1
+            for i in reversed(bin_action):
+                a[j] = i
+                j -= 1
+            bin_action = a
+
         for i in range(len(traffic_lights)):
             traci.trafficlight.setPhase(traffic_lights[i], bin_action[i])
 
