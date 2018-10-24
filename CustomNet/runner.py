@@ -197,7 +197,7 @@ def start_q_learning(epsilon, alpha, gamma, wait_time):
 
     # Traffic lights and lane area detectors are found from xml files. Directories might change.
     traffic_lights = []
-    with open("data/CustomNet.xml") as nodes:
+    with open("data/CustomNet.net.xml") as nodes:
         lines = nodes.readlines()
 
     for line in lines:
@@ -210,7 +210,7 @@ def start_q_learning(epsilon, alpha, gamma, wait_time):
     # traffic_lights = ["A", "B"]           # complex network
 
     halt_areas = []
-    with open("data/CustomNet.xml") as areas:
+    with open("data/CustomNetAdditionals.xml") as areas:
         lines = areas.readlines()
 
     for line in lines:
@@ -224,7 +224,7 @@ def start_q_learning(epsilon, alpha, gamma, wait_time):
     # num_of_actions = np.power(2, len(traffic_lights))
 
     state_matrix = create_state_matrix(halt_areas, traffic_lights)
-    qtable = create_qtable(len(state_matrix), len(traffic_lights)*2)
+    qtable = create_qtable(len(state_matrix), 2**len(traffic_lights))
     print(qtable)
     state = get_state(state_matrix, halt_areas, traffic_lights)
     print(state)

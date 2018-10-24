@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <routes>
-  <vType accel="1" decel="5.0" id="CarA" length="5.0" minGap="1.5" maxSpeed="80.0" sigma="0.7" /> <!--   !-->
+  <vType accel="0.8" decel="4.5" id="CarA" length="5.0" minGap="2.5" maxSpeed="16.7" sigma="0.5" /> <!--   !-->
   <vType accel="2.0" decel="6.0" id="CarB" length="7.5" minGap="2.5" maxSpeed="50.0" sigma="0.5" /> <!--   !-->
   <vType accel="1.5" decel="7.0" id="CarC" length="5.0" minGap="2.0" maxSpeed="60.0" sigma="0.6" /> <!--   !-->
 
