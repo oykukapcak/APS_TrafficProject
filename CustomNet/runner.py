@@ -39,15 +39,18 @@ else:
 from sumolib import checkBinary  # noqa
 import traci  # noqa
 
-
 # def create_qtable(num_lights):
 #    qtable = 10 * np.random.random_sample((np.power(2, num_lights)*np.power(3, num_lights), np.power(2, len(num_lights))))
 #    return qtable
 
+
 def create_qtable(num_states, num_actions):
-    #qtable = np.zeros((num_states, num_actions), dtype =int)
-    #NOT SURE HOW EXACTLY WE NEED TO INITIALIZE THIS
+    # qtable = np.zeros((num_states, num_actions), dtype =int)
+    # NOT SURE HOW EXACTLY WE NEED TO INITIALIZE THIS
+    print("creating qtable")
     qtable= 10 * np.random.random_sample((num_states, num_actions))
+    print("created qtable")
+    print(qtable)
     return qtable
 
 
@@ -62,17 +65,25 @@ def calc_density(num_halt):
     return density
 
 
+def calc_density2(num_halt, lane_length):
+    car_size = 5.0
+    density = num_halt*car_size/lane_length
+    return density
+
+
 def create_state_matrix(halt_areas, traffic_lights):
     # halt = []
     # phases = []
+    print("creating state matrix")
 
     # define combinations of phases
     phase_combs = np.array(list(itertools.product([0, 2], repeat=len(traffic_lights))))
 
     # define combinations of densities
+    print(len(halt_areas))
     density_combs = np.array(list(itertools.product([0, 1, 2], repeat=len(halt_areas))))
-    densities = np.tile(density_combs, (len(phase_combs), 1))
 
+    densities = np.tile(density_combs, (len(phase_combs), 1))
     phases = np.zeros((len(densities), len(traffic_lights)), dtype=int)
 
     t = 0
@@ -83,6 +94,8 @@ def create_state_matrix(halt_areas, traffic_lights):
 
     # generate the state matrix
     states = np.concatenate((densities, phases), axis=1)
+    print("created state matrix:")
+    print(states)
     return states
 
 
@@ -91,10 +104,16 @@ def get_state(state_matrix, halt_areas, traffic_lights):
     halt = []
     phases = []
     densities = []
+    # lane_lengths = []
 
     for i in range(len(halt_areas)):
         halt.append(traci.lanearea.getLastStepHaltingNumber(halt_areas[i]))
         densities.append(calc_density(halt[i]))
+
+    # for i in range(len(halt_areas)):
+    #    halt.append(traci.lane.getLastStepHaltingNumber(halt_areas[i]))
+    #    lane_lengths.append(traci.lane.getLength(halt_areas[i]))
+    #    densities.append(calc_density2(halt[i]), lane_lengths[i])
 
     for i in range(len(traffic_lights)):
         phase = traci.trafficlight.getPhase(traffic_lights[i])
@@ -146,7 +165,7 @@ def plot(waiting_cars):
 
 
 def generate_routefile(N):
-    #TODO: Make scalable, not sure how
+    # TODO: Make scalable, not sure how
     random.seed()  # make tests reproducible by random.seed(some_number)
 
     with open("data/cross.rou.xml", "w") as routes:
@@ -197,6 +216,7 @@ def start_q_learning(epsilon, alpha, gamma, wait_time):
 
     # Traffic lights and lane area detectors are found from xml files. Directories might change.
     traffic_lights = []
+
     with open("data/CustomNet.net.xml") as nodes:
         lines = nodes.readlines()
 
@@ -205,12 +225,18 @@ def start_q_learning(epsilon, alpha, gamma, wait_time):
             # print(line)
             light = line.split('id="')[1].split('"')[0]
             traffic_lights.append(light)
+            # lanes = traci.trafficlight.getControlledLanes(light) # to get the lanes leading to that traffic light
+
+            # for i in range(len(lanes)):
+            #    halt_areas.append(lanes[i])
+    print("Traffic lights are found: ")
+    print(traffic_lights)
 
     # traffic_lights = ["A"]                  # simple network
     # traffic_lights = ["A", "B"]           # complex network
 
     halt_areas = []
-    with open("data/CustomNetAdditionals.xml") as areas:
+    with open("data/CustomNetAdditionals2.xml") as areas:
         lines = areas.readlines()
 
     for line in lines:
@@ -219,19 +245,21 @@ def start_q_learning(epsilon, alpha, gamma, wait_time):
             area = line.split('id="')[1].split('"')[0]
             halt_areas.append(area)
 
+    print("Lane area detectors are found: ")
+    print(halt_areas)
+
     # halt_areas = ["wA0", "nA0", "eA0", "sA0"]                                       # simple network
     # halt_areas = ["wA0", "n1A0", "BA0", "s1A0", "eB0", "n2B0", "AB0", "s2B0"]     # complex network
     # num_of_actions = np.power(2, len(traffic_lights))
 
     state_matrix = create_state_matrix(halt_areas, traffic_lights)
     qtable = create_qtable(len(state_matrix), 2**len(traffic_lights))
-    print(qtable)
     state = get_state(state_matrix, halt_areas, traffic_lights)
-    print(state)
+    # print("Current state: %i:" % state)
 
     while traci.simulation.getMinExpectedNumber() > 0:
         action = choose_action(state, qtable, epsilon)
-        print("action %i" % action)
+        # print("Chosen action: %i" % action)
         bin_action = [int(x) for x in list('{0:0b}'.format(action))]
 
         for i in range(len(bin_action)):
@@ -259,7 +287,6 @@ def start_q_learning(epsilon, alpha, gamma, wait_time):
         next_state = get_state(state_matrix, halt_areas, traffic_lights)
         reward = calc_reward(halt_areas)
         total_reward += reward
-
 
         # to plot the total number of cars waiting for every 100 time steps
         if time_step < wait_time:
