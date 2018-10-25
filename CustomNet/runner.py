@@ -80,8 +80,9 @@ def create_state_matrix(halt_areas, traffic_lights):
     phase_combs = np.array(list(itertools.product([0, 2], repeat=len(traffic_lights))))
 
     # define combinations of densities
-    print(len(halt_areas))
-    density_combs = np.array(list(itertools.product([0, 1, 2], repeat=len(halt_areas))))
+    #print(len(halt_areas))
+    #density_combs = np.array(list(itertools.product([0, 1, 2], repeat=len(halt_areas))))
+    density_combs = np.array(list(itertools.product([0, 1, 2], repeat=12)))
 
     densities = np.tile(density_combs, (len(phase_combs), 1))
     phases = np.zeros((len(densities), len(traffic_lights)), dtype=int)
@@ -108,7 +109,22 @@ def get_state(state_matrix, halt_areas, traffic_lights):
 
     for i in range(len(halt_areas)):
         halt.append(traci.lanearea.getLastStepHaltingNumber(halt_areas[i]))
-        densities.append(calc_density(halt[i]))
+        # densities.append(calc_density(halt[i]))
+
+    den0 = calc_density(halt[0])
+    den1 = calc_density(halt[1])
+    den2 = calc_density(halt[2])
+    den3 = calc_density(halt[3])
+    den4 = calc_density(halt[4] + halt[5])
+    den5 = calc_density(halt[6] + halt[7])
+    den6 = calc_density(halt[8] + halt[9])
+    den7 = calc_density(halt[10])
+    den8 = calc_density(halt[11] + halt[12])
+    den9 = calc_density(halt[13] + halt[14])
+    den10 = calc_density(halt[15] + halt[16])
+    den11 = calc_density(halt[17])
+
+    densities = [den0, den1, den2, den3, den4, den5, den6, den7, den8, den9, den10, den11]
 
     # for i in range(len(halt_areas)):
     #    halt.append(traci.lane.getLastStepHaltingNumber(halt_areas[i]))
@@ -240,7 +256,7 @@ def start_q_learning(epsilon, alpha, gamma, wait_time):
         lines = areas.readlines()
 
     for line in lines:
-        if 'laneAreaDetector' in line:
+        if 'e2Detector' in line:
             # print(line)
             area = line.split('id="')[1].split('"')[0]
             halt_areas.append(area)
@@ -253,6 +269,7 @@ def start_q_learning(epsilon, alpha, gamma, wait_time):
     # num_of_actions = np.power(2, len(traffic_lights))
 
     state_matrix = create_state_matrix(halt_areas, traffic_lights)
+    #state_matrix = create_state_matrix(12, traffic_lights)
     qtable = create_qtable(len(state_matrix), 2**len(traffic_lights))
     state = get_state(state_matrix, halt_areas, traffic_lights)
     # print("Current state: %i:" % state)

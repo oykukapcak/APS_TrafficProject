@@ -4,7 +4,7 @@
     <input>
         <net-file value="CustomNet.net.xml"/>
         <route-files value="CustomNet.rou.xml"/>
-        <!--<additional-files value="CustomNetAdditionals2.xml"/>-->
+        <additional-files value="CustomNetAdditionals2.xml"/>
     </input>
     <time-to-teleport value="-1"/>
 </configuration>
