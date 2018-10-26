@@ -224,10 +224,6 @@ def calc_reward(halt_areas):
 
 
 def update_table(qtable, reward, states, actions, alpha, gamma, next_states):  # NOT SURE ABOUT THE Q-FUNCTION
-    for i in range(len(actions)):
-        if actions[i] == 2:
-            actions[i] = 1
-
     # Decide on next actions for each traffic light
     next_actions = []
 
