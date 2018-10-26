@@ -180,11 +180,11 @@ def get_state(state_matrix, detectors, traffic_lights):
     # Then find the corresponding row index from state matrix to return real stata number
     real_states = []
     for s in range(len(all_lights_state)):
-        print("Light no: %i" %s)
-        print("State to be found: ")
-        print(all_lights_state[s])
-        print("State matrix to be searched: ")
-        print(state_matrix[s])
+        # print("Light no: %i" %s)
+        # print("State to be found: ")
+        # print(all_lights_state[s])
+        # print("State matrix to be searched: ")
+        # print(state_matrix[s])
         real_state = np.where(np.all(state_matrix[s] == all_lights_state[s], axis=1))[0][0]
         real_states.append(real_state)
 
@@ -391,7 +391,7 @@ def run(algorithm):
     """execute the TraCI control loop"""
 
     if algorithm == 1:  # q-learning
-        start_q_learning(0.9, 0.01, 0.01, 20)
+        start_q_learning(0.9, 0.01, 0.01, 30)
     else:  # original
         start_original()
 
