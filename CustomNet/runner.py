@@ -315,7 +315,7 @@ def start_ga():
     time_step = 0
     waiting_cars = 0
     belief = blf.Belief()
-    time_cycle = 1
+    time_cycle = 10
 
     while traci.simulation.getMinExpectedNumber() > 0:
         traci.simulationStep()
@@ -346,8 +346,8 @@ def start_ga():
                 acspeed = traci.vehicle.getSpeed(car)
                 maxspeed = traci.lane.getMaxSpeed(lane)
                 # print('{}, tls {}, speed {}, max {}, '.format(car, next_tls, speed, maxspeed))
-                belief.calculate_load(time_cycle)
-                # print('total load: {}, {}'.format(np.sum(list(belief.load.values())), belief.load))
+                belief.calculate_load(step, time_cycle)
+                print('total load: {}, {}'.format(np.sum(list(belief.load.values())), belief.load))
                 tls = 'gneJ6'
                 complete = traci.trafficlight.getCompleteRedYellowGreenDefinition(tls)
                 curprogram = traci.trafficlight.getRedYellowGreenState(tls)
@@ -357,13 +357,12 @@ def start_ga():
                 dur = traci.trafficlight.getPhaseDuration(tls)
                 controlledlanes = traci.trafficlight.getControlledLanes(tls)
                 switch = traci.trafficlight.getNextSwitch(tls)
-                t = belief._get_edge_condition('gneJ6', 'gneE5_0', step, step + 1)
+                # t = belief._get_edge_condition('gneJ6', 'gneE5_0', step, step + 1)
                 # controlledlinks = traci.trafficlight.getControlledLinks(tls)
 
 
                 # print('{}, tls {}, speed {}, max {}, '.format(car, next_tls, speed, maxspeed))
-                belief.calculate_load(time_cycle)
-                print('prog {}, phase {}, dur {}'.format(curprogram, phase, t))
+                # print('prog {}, phase {}, dur {}'.format(curprogram, phase, t))
                 # print(type(complete[0].getPhases()), type(complete[0].getPhases()[0]), complete[0].getPhases()[0]._phaseDef)
                 # print(complete[0].getPhases())
                 
