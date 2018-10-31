@@ -1,14 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<!-- generated on 10/23/18 10:14:28 by Eclipse SUMO netedit Version 1.0.1
+<!-- generated on 10/30/18 14:59:38 by Eclipse SUMO netedit Version 1.0.1
 <configuration xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://sumo.dlr.de/xsd/netconvertConfiguration.xsd">
 
     <input>
-        <sumo-net-file value="D:\Louis\Documenten\dev\APS_TrafficProject\complex_network_1.net.xml"/>
+        <sumo-net-file value="C:\Users\work-02\Documents\git\APS_TrafficProject\CustomNet\data\CustomNet.net.xml"/>
     </input>
 
     <output>
-        <output-file value="D:\Louis\Documenten\dev\APS_TrafficProject\complex_network_1.net.xml"/>
+        <output-file value="C:\Users\work-02\Documents\git\APS_TrafficProject\CustomNet\data\CustomNet.net.xml"/>
     </output>
 
     <processing>
@@ -46,7 +46,6 @@
     <instantInductionLoop id="instantInductionLoop_gneE27_0_11" lane="gneE27_0" pos="79.21" file="instantInductionLoop_gneE27_0_11.xml"/>
     <instantInductionLoop id="instantInductionLoop_gneE31_0_20" lane="gneE31_0" pos="82.11" file="instantInductionLoop_gneE31_0_20.xml"/>
     <instantInductionLoop id="instantInductionLoop_gneE34_0_17" lane="gneE34_0" pos="177.84" file="instantInductionLoop_gneE34_0_17.xml"/>
-    <instantInductionLoop id="instantInductionLoop_gneE38_0_0" lane="gneE38_0" pos="180.35" file="instantInductionLoop_gneE38_0_0.xml"/>
     <instantInductionLoop id="instantInductionLoop_gneE3_0_6" lane="gneE3_0" pos="272.00" file="instantInductionLoop_gneE3_0_6.xml" friendlyPos="1"/>
     <instantInductionLoop id="instantInductionLoop_gneE3_1_5" lane="gneE3_1" pos="271.91" file="instantInductionLoop_gneE3_1_5.xml" friendlyPos="1"/>
     <instantInductionLoop id="instantInductionLoop_gneE4_0_1" lane="gneE4_0" pos="188.24" file="instantInductionLoop_gneE4_0_1.xml" friendlyPos="1"/>

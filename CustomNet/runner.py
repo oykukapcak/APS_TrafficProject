@@ -338,7 +338,8 @@ def start_ga():
             if belief.hasCars():
                 car = belief.cars[0]
                 lane_pos = traci.vehicle.getLanePosition(car)
-                lane = traci.vehicle.getLaneID(car)
+                lane = traci.vehicle.getLaneID(car) # gneEX_X
+                laneidx = traci.vehicle.getLaneIndex(car) # 0
                 route = traci.vehicle.getRoute(car)
                 speed = traci.vehicle.getSpeedWithoutTraCI(car)
                 next_tls = traci.vehicle.getNextTLS(car)
@@ -347,18 +348,29 @@ def start_ga():
                 # print('{}, tls {}, speed {}, max {}, '.format(car, next_tls, speed, maxspeed))
                 belief.calculate_load(time_cycle)
                 # print('total load: {}, {}'.format(np.sum(list(belief.load.values())), belief.load))
-
                 tls = 'gneJ6'
-                program = traci.trafficlight.getRedYellowGreenState(tls)
-                phase = traci.trafficlight.getPhase('gneJ6')
+                complete = traci.trafficlight.getCompleteRedYellowGreenDefinition(tls)
+                curprogram = traci.trafficlight.getRedYellowGreenState(tls)
+                program = traci.trafficlight.getProgram(tls)
+
+                phase = traci.trafficlight.getPhase(tls)
                 dur = traci.trafficlight.getPhaseDuration(tls)
+                controlledlanes = traci.trafficlight.getControlledLanes(tls)
+                switch = traci.trafficlight.getNextSwitch(tls)
+                t = belief._get_edge_condition('gneJ6', 'gneE5_0', step, step + 1)
+                # controlledlinks = traci.trafficlight.getControlledLinks(tls)
+
 
                 # print('{}, tls {}, speed {}, max {}, '.format(car, next_tls, speed, maxspeed))
-                # belief.calculate_load(time_cycle)
-                print('prog {}, phase {}, dur {}'.format(program, phase, dur))
+                belief.calculate_load(time_cycle)
+                print('prog {}, phase {}, dur {}'.format(curprogram, phase, t))
+                # print(type(complete[0].getPhases()), type(complete[0].getPhases()[0]), complete[0].getPhases()[0]._phaseDef)
+                # print(complete[0].getPhases())
+                
+                # print(route)
                 # phase = solve(halt_nA0, halt_eA0, halt_sA0, halt_wA0)
-
-            # traci.trafficlight.setPhase("A", phase)
+                
+                # traci.trafficlight.setPhase("gneJ6", 0)
         
     traci.close()
     sys.stdout.flush()
@@ -376,7 +388,6 @@ def solve(n, e, s, w):
     ga.initial_population(chromosome_params=[n, e, s, w])
     best, evo = ga.approximate()
     return 2*best.chromosome[0]
-
 
 
 def run(algorithm):
