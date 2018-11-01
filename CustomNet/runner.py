@@ -299,6 +299,7 @@ def start_q_learning(epsilon, alpha, gamma, wait_time):
     total_reward = 0
     time_step = 0
     step = 0
+    total_waiting_time = 0
 
     # Traffic lights and lane area detectors are found from xml files. Directories might change.
     traffic_lights, detectors, actions = parse_xmls()
@@ -327,7 +328,7 @@ def start_q_learning(epsilon, alpha, gamma, wait_time):
         total_reward += reward
 
         # to plot the total number of cars waiting for every 100 time steps
-        if time_step < wait_time:
+        if time_step < 10:
             waiting_cars += -1 * reward
 
         else:
@@ -343,31 +344,48 @@ def start_q_learning(epsilon, alpha, gamma, wait_time):
         state = next_state
         #print("*********** the state ****************")
         #print(state)
-        epsilon -= 0.01  # this might be something else
+
+        vehicles = traci.vehicle.getIDList()
+        # print(vehicles)
+
+        for i in range(len(vehicles)):
+            total_waiting_time += traci.vehicle.getWaitingTime(vehicles[i])
+
+        # print("waiting time = %i" % total_waiting_time)
+
+        #alpha *= 0.99
+
+        if epsilon > 0.05:
+            epsilon *= 0.999  # this might be something else
 
     print("total reward: %i" % total_reward)
+    print("total waiting time = %i" % total_waiting_time)
     waiting_cars_array = np.hstack(waiting_cars_array)
     plot(waiting_cars_array)
     # print(rewards)
 
 
-def start_original():
+def start_original(wait_time):
+    print("start original")
     waiting_cars_array = []
     total_reward = 0
     waiting_cars = 0
     time_step = 0
     step = 0
 
+    # Traffic lights and lane area detectors are found from xml files. Directories might change.
+    traffic_lights, detectors, actions = parse_xmls()
+
     while traci.simulation.getMinExpectedNumber() > 0:
         # traci.simulationStep()
         # step += 1
-        for i in range(10):  # changing this makes difference
+        for i in range(wait_time):  # changing this makes difference
 
             traci.simulationStep()
 
-        step += 10
+        step += wait_time
         time_step += 1
-        reward = calc_reward()
+        reward = calc_reward(detectors)
         # print("reward: %i" % reward)
         total_reward += reward
 
@@ -389,11 +407,12 @@ def start_original():
 
 def run(algorithm):
     """execute the TraCI control loop"""
-
+    wait_time = 30
     if algorithm == 1:  # q-learning
-        start_q_learning(0.9, 0.01, 0.01, 30)
+        #inputs: epsilon, alpha, gamma
+        start_q_learning(0.9, 0.1, 0.9, wait_time)
     else:  # original
-        start_original()
+        start_original(wait_time)
 
     traci.close()
     sys.stdout.flush()
