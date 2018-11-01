@@ -7,15 +7,7 @@
 # http://www.eclipse.org/legal/epl-v20.html
 # SPDX-License-Identifier: EPL-2.0
 
-# @file    runner.py
-# @author  Lena Kalleske
-# @author  Daniel Krajzewicz
-# @author  Michael Behrisch
-# @author  Jakob Erdmann
-# @date    2009-03-26
-# @version $Id$
 
-# Modified for TUDelft course CS4010 by Canmanie T. Ponnambalam, September 2018
 
 from __future__ import absolute_import
 from __future__ import print_function
@@ -315,62 +307,40 @@ def start_ga():
     time_step = 0
     waiting_cars = 0
     belief = blf.Belief()
-    time_cycle = 10
+    belief.traffic_light = traffic_light
+    belief.current_tick = 0
+    time_cycle = 120
+    belief.time_cycle = time_cycle
+    
+    ga = genetic.Genetic()
+    ga.initial_population(population_size=20, chromosome_size=16, segment_size=5, belief=belief)
+    print('pop 0', ga.population[0].chromosome)
+    
+    # print('pop 0 decode', ga.population[0].decode())
+    print('fitness', ga.population[0].fitness())
+
 
     while traci.simulation.getMinExpectedNumber() > 0:
         traci.simulationStep()
         step += 1
         # time_step += 1
-        # halt_wA0 = traci.lanearea.getLastStepHaltingNumber("wA0")  # number of halting cars on wA0
-        # halt_nA0 = traci.lanearea.getLastStepHaltingNumber("nA0")
-        # halt_eA0 = traci.lanearea.getLastStepHaltingNumber("eA0")  # number of halting cars on wA0
-        # halt_sA0 = traci.lanearea.getLastStepHaltingNumber("sA0")
-        
+        belief.current_tick = step
         ## MOVE
         belief.addCars(traci.simulation.getDepartedIDList())
         belief.removeCars(traci.simulation.getArrivedIDList())
-        # print('departed', traci.simulation.getDepartedIDList())
-        # print('arrived', traci.simulation.getArrivedIDList())
-
         
         if step % time_cycle  == 0:
-            ### MOVE 
             if belief.hasCars():
-                car = belief.cars[0]
-                lane_pos = traci.vehicle.getLanePosition(car)
-                lane = traci.vehicle.getLaneID(car) # gneEX_X
-                laneidx = traci.vehicle.getLaneIndex(car) # 0
-                route = traci.vehicle.getRoute(car)
-                speed = traci.vehicle.getSpeedWithoutTraCI(car)
-                next_tls = traci.vehicle.getNextTLS(car)
-                acspeed = traci.vehicle.getSpeed(car)
-                maxspeed = traci.lane.getMaxSpeed(lane)
-                # print('{}, tls {}, speed {}, max {}, '.format(car, next_tls, speed, maxspeed))
-                belief.calculate_load(step, time_cycle)
-                print('total load: {}, {}'.format(np.sum(list(belief.load.values())), belief.load))
-                tls = 'gneJ6'
-                complete = traci.trafficlight.getCompleteRedYellowGreenDefinition(tls)
-                curprogram = traci.trafficlight.getRedYellowGreenState(tls)
-                program = traci.trafficlight.getProgram(tls)
+                traci_prints(belief)
+                load = belief.calculate_load(step, time_cycle, passes=True)
+                ga.initial_population(population_size=100, chromosome_size=16, segment_size=5, belief=belief)
+                print('total load: {}, {}'.format(np.sum(list(load.values())), load))
+                best, evo =  ga.approximate(epochs=16, verbose=1)
+                # new_load = belief.calculate_load(step, time_cycle, phases=best.decode(), passes=True)
+                # print('new total load: {}, {}'.format(best_fitness), new_load))
+                print('new fitness: ', best.fitness())
+                # TODO: program runner
 
-                phase = traci.trafficlight.getPhase(tls)
-                dur = traci.trafficlight.getPhaseDuration(tls)
-                controlledlanes = traci.trafficlight.getControlledLanes(tls)
-                switch = traci.trafficlight.getNextSwitch(tls)
-                # t = belief._get_edge_condition('gneJ6', 'gneE5_0', step, step + 1)
-                # controlledlinks = traci.trafficlight.getControlledLinks(tls)
-
-
-                # print('{}, tls {}, speed {}, max {}, '.format(car, next_tls, speed, maxspeed))
-                # print('prog {}, phase {}, dur {}'.format(curprogram, phase, t))
-                # print(type(complete[0].getPhases()), type(complete[0].getPhases()[0]), complete[0].getPhases()[0]._phaseDef)
-                # print(complete[0].getPhases())
-                
-                # print(route)
-                # phase = solve(halt_nA0, halt_eA0, halt_sA0, halt_wA0)
-                
-                # traci.trafficlight.setPhase("gneJ6", 0)
-        
     traci.close()
     sys.stdout.flush()
     # plt.plot(halting_cars)
@@ -378,15 +348,55 @@ def start_ga():
     # plt.ylabel("#waiting cars")
     # plt.show()
 
-def ga_config():
-    genetic.POPULATION_SIZE = 100
-    genetic.CHROMOSOME_SIZE = 1
+def traci_prints(belief):
+    car = belief.cars[0]
+    lane_pos = traci.vehicle.getLanePosition(car)
+    lane = traci.vehicle.getLaneID(car) # gneEX_X
+    laneidx = traci.vehicle.getLaneIndex(car) # 0
+    route = traci.vehicle.getRoute(car)
+    speed = traci.vehicle.getSpeedWithoutTraCI(car)
+    next_tls = traci.vehicle.getNextTLS(car)
+    acspeed = traci.vehicle.getSpeed(car)
+    maxspeed = traci.lane.getMaxSpeed(lane)
+    # print('{}, tls {}, speed {}, max {}, '.format(car, next_tls, speed, maxspeed))
+    lane = 'gneE17_1'
+    wt = traci.lane.getWaitingTime(lane)
+    tt = traci.lane.getTraveltime(lane)
+    # print('wt {}, tt {}'.format(wt, tt))
+    # print('total load: {}, {}'.format(np.sum(list(belief.load.values())), belief.load))
+    tls = 'gneJ6'
+    complete = traci.trafficlight.getCompleteRedYellowGreenDefinition(tls)
+    curprogram = traci.trafficlight.getRedYellowGreenState(tls)
+    program = traci.trafficlight.getProgram(tls)
 
-def solve(n, e, s, w):
-    ga = genetic.Genetic()
-    ga.initial_population(chromosome_params=[n, e, s, w])
-    best, evo = ga.approximate()
-    return 2*best.chromosome[0]
+    phase = traci.trafficlight.getPhase(tls)
+    dur = traci.trafficlight.getPhaseDuration(tls)
+    controlledlanes = traci.trafficlight.getControlledLanes(tls)
+    switch = traci.trafficlight.getNextSwitch(tls)
+    # traci.trafficlight.setCompleteRedYellowGreenDefinition(tls, complete)
+    # t = belief._get_edge_condition('gneJ6', 'gneE5_0', step, step + 1)
+    # controlledlinks = traci.trafficlight.getControlledLinks(tls)
+
+
+    # print('{}, tls {}, speed {}, max {}, '.format(car, next_tls, speed, maxspeed))
+    # print('prog {}, phase {}, dur {}'.format(curprogram, phase, t))
+    # print(type(complete[0].getPhases()), type(complete[0].getPhases()[0]), complete[0].getPhases()[0]._phaseDef)
+    # print(complete[0].getPhases())
+    
+    # print(route)
+    # phase = solve(halt_nA0, halt_eA0, halt_sA0, halt_wA0)
+    
+    # traci.trafficlight.setPhase("gneJ6", 0)
+
+# def ga_config():
+#     genetic.POPULATION_SIZE = 100
+#     genetic.CHROMOSOME_SIZE = 1
+
+# def solve(n, e, s, w):
+#     ga = genetic.Genetic()
+#     ga.initial_population(chromosome_params=[n, e, s, w])
+#     best, evo = ga.approximate()
+#     return 2*best.chromosome[0]
 
 
 def run(algorithm):

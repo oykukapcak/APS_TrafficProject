@@ -14,35 +14,49 @@ from math import floor
 # PROMOTION_RATE = POPULATION_SIZE * 0.25
 # STANDARD_FITNESS = 0.01
 
+# POPULATION_SIZE = 6
+# CHROMOSOME_SIZE = 4
+MUTATION_RATE = 0.01  # Usually between  0.001 and 0.01.
+CROSSOVER_RATE = 0.7
+CHOICES_TEST = [0, 1]
+# SEGMENT_SIZE = 5
 
 
 class Chromosome:
 
-    fitness_params = []
-    CHOICES_TEST = [0, 1]
-
-    def __init__(self, size, chromosome=[]):
+    def __init__(self, size, chromosome=[], belief=[], segment_size=1):
         self.size = size
+        self.SEGMENT_SIZE = segment_size
+        if belief:
+            self.belief = belief
         if len(chromosome) > 0:
             self.chromosome = chromosome
         else:
             self.chromosome = self.random_binary_chromosome(size)
 
+    # v2 
     def fitness(self):
-        params = self.fitness_params
-        return self.fitness_traci(params[0], params[1], params[2], params[3])
+        new_phases = self.decode()
+        fit_dict = np.sum(self.belief.calculate_load(self.belief.current_tick, self.belief.time_cycle, phases=new_phases, method=0, passes=True))
+        return np.sum(list(fit_dict.values()))
 
-    def fitness_v2(self):
-        traci
+    def decode(self):
+        delays = []
+        for i in range(int(self.size/self.SEGMENT_SIZE)): #16
+            phase_delay = -15
+            for j in range(self.SEGMENT_SIZE): #5
+                phase_delay += self.chromosome[self.SEGMENT_SIZE*i+j] * 2**j
+            delays.append(phase_delay)
+            delays.append(-phase_delay) 
+        
+        tls_phases = self.belief.tls_phases.copy()
+        i = 0
+        for v in tls_phases.keys():
+            for p in tls_phases[v]:
+                p._duration += delays[i]
+                i += 1
+        return tls_phases
 
-    def fitness_traci(self, n, e, s, w, sectio_id='A'):
-        max_queue = 10
-        if traci.trafficlight.getPhase(sectio_id) == 0:
-            return max_queue-n+s
-        elif traci.trafficlight.getPhase(sectio_id) == 2:
-            return max_queue-w+e
-        else:
-            assert 'Section id {} is not 0 or 2'.format(sectio_id)
 
     def fitness_test(self):
         a = self.chromosome
@@ -52,7 +66,7 @@ class Chromosome:
     def crossover(self, other, x):
         n1 = np.concatenate((self.chromosome[:x], other.chromosome[x:]))
         n2 = np.concatenate((other.chromosome[:x], self.chromosome[x:]))
-        return Chromosome(self.size, n1), Chromosome(self.size, n2)
+        return Chromosome(self.size, n1, belief=self.belief, segment_size=self.SEGMENT_SIZE), Chromosome(self.size, n2, belief=self.belief, segment_size=self.SEGMENT_SIZE)
 
     def mutate(self, i):
         choices = CHOICES_TEST[:]
@@ -65,17 +79,12 @@ class Chromosome:
 
 class Genetic:
 
-    POPULATION_SIZE = 6
-    CHROMOSOME_SIZE = 4
-    MUTATION_RATE = 0.01  # Usually between  0.001 and 0.01.
-    CROSSOVER_RATE = 0.7
-
     # 1 Initial population
-    def initial_population(self, population_size = POPULATION_SIZE, chromosome_size=CHROMOSOME_SIZE,
-                            chromosome_params=[]):
-        Chromosome.fitness_params = chromosome_params
-        self.population = [Chromosome(chromosome_size)
-                           for i in range(population_size)]
+    def initial_population(self, population_size, chromosome_size, segment_size=1, belief=None):
+        self.POPULATION_SIZE = population_size
+        self.CHROMOSOME_SIZE = chromosome_size
+        self.SEGMENT_SIZE = segment_size
+        self.population = [Chromosome(chromosome_size*segment_size, segment_size=segment_size, belief=belief) for i in range(population_size)]
         
     # 2 Fitness function
 
@@ -112,7 +121,7 @@ class Genetic:
         new_population = []
         for i in range(floor(len(candidates)/2)):
             if rn.random() < CROSSOVER_RATE:
-                x = rn.randint(1, CHROMOSOME_SIZE - 1)
+                x = rn.randint(1, self.CHROMOSOME_SIZE - 1)
                 new_population.extend(
                     candidates[2*i].crossover(candidates[2*i + 1], x))
             else:
@@ -120,12 +129,12 @@ class Genetic:
                 new_population.append(candidates[2*i+1])
 
         # 5 Mutation
-        total_genes = CHROMOSOME_SIZE * POPULATION_SIZE
+        total_genes = self.CHROMOSOME_SIZE * self.POPULATION_SIZE
         nr_of_mutations = int(round(total_genes * MUTATION_RATE))
         for _ in range(nr_of_mutations):
             r = rn.randint(0, total_genes - 1)
-            chrom_index = floor(r / CHROMOSOME_SIZE)
-            gene_index = r % CHROMOSOME_SIZE
+            chrom_index = floor(r / self.CHROMOSOME_SIZE)
+            gene_index = r % self.CHROMOSOME_SIZE
             a = new_population[chrom_index]
             a.mutate(gene_index)
 
@@ -160,11 +169,11 @@ class Genetic:
                 print('\r Epoch: {}/{}'.format(counter, epochs), end='')
         return self.find_best(), evolution
 
-if __name__ == "__main__":
-    gen = Genetic()
-    gen.initial_population()
-    best, evo = gen.approximate()
-    plt.plot([gen.average_fitness(pop) for pop in evo])
-    plt.xlabel(s='generation')
-    plt.ylabel(s='population fitness')
-    plt.show()
+# if __name__ == "__main__":
+    # gen = Genetic()
+    # gen.initial_population()
+    # best, evo = gen.approximate()
+    # plt.plot([gen.average_fitness(pop) for pop in evo])
+    # plt.xlabel(s='generation')
+    # plt.ylabel(s='population fitness')
+    # plt.show()

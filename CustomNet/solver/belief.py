@@ -7,6 +7,20 @@ class Belief:
         self.cars = []
         self.network = {}
         self.load = {}
+        self.tls_phases = self._init_tls_phases()
+
+    def _init_tls_phases(self):
+        traffic_lights = ["gneJ4", "gneJ5", "gneJ6", "gneJ9", "gneJ10", "gneJ11"]
+        d = {}
+        phase_count = 0
+        for tls in traffic_lights:
+            phases = self._get_all_tls_phases(tls)
+            # print(len(phases), phases)
+            phase_count += len(phases)
+            # print('count', phase_count)
+            d[tls] = phases
+        self.phase_count = phase_count
+        return d
 
     def addCars(self, car_ids):
         for i in car_ids:
@@ -19,45 +33,49 @@ class Belief:
     def hasCars(self):
         return len(self.cars) > 0
 
-    def calculate_load(self, cur_tick, t):
-        general_speed = 12 # Needs to be done dynamically
+
+    
+    ## Method 1
+    # Get the state it is going to be after #ticks
+    # + Get all of the states from that light
+    # + Get the lane which the car is going to take while approaching the tls
+    # + Get the light phase on time t. 
+    # + Get the position in the phase of the light depending on the car's lane
+    ## Method 2
+    # Get waiting time
+
+    def calculate_load(self, cur_tick, t, phases=[], method=0, passes=False ):
+        general_speed = 10 # Needs to be done dynamically
         # calculate the load per tls. Calculate how many cars are going to be waiting
         load = {}
+        # Method 1, check per car
         for c in self.cars:
             next_tls = traci.vehicle.getNextTLS(c)
             # For every tls in the list
             for tls in next_tls:
-                # check if its within range
+                # Method 1 check if its within range
                 name = tls[0]
-                if name not in load:
-                    load[name] = 0
+                edge = self._get_approaching_lane(c, name)
+                if edge not in load:
+                    load[edge] = 0
                 rnge = general_speed * t
 
-                ## Placeholder
-                # Get the state it is going to be after #ticks
-                # + Get all of the states from that light
-                # + Get the lane which the car is going to take while approaching the tls
-                # + Get the light phase on time t. 
-                # + Get the position in the phase of the light depending on the car's lane
-                
-                edge = self._get_approaching_lane(c, name)
-                state = self._get_edge_condition(name, edge, cur_tick, cur_tick + t)
-                condition = (state == 'r' or state == 'y') # Change condition to compare to next state
+               
+                state = self._get_edge_condition(name, edge, cur_tick, cur_tick + t, new_phases=phases)
+                if passes:
+                    condition = (state == 'G')
+                else: 
+                    condition = (state == 'r' or state == 'y') # Change condition to compare to next state
                 if rnge > tls[2] and condition:
-                    load[name] += 1
+                    load[edge] += 1
                 ##
 
-        self.load = load
+        # self.load = load
         return load
     
     def _get_approaching_lane(self, car, tls):
         controlled = [i.split('_')[0] for i in traci.trafficlight.getControlledLanes(tls)] #TODO: REMOVE 
         route = list(traci.vehicle.getRoute(car))
-
-
-        # print('controlled ', controlled)
-        # print('car ', car)
-        # print('route ', route)
         res = ''
         for edge in route:
             # print('edge', type(edge), edge)
@@ -81,8 +99,11 @@ class Belief:
         return list(traci.trafficlight.getCompleteRedYellowGreenDefinition(tls)[0].getPhases())
 
     # Get edge condition at time t
-    def _get_edge_condition(self, tls, edge, cur_tick, t):
-        phases = self._get_all_tls_phases(tls)
+    def _get_edge_condition(self, tls, edge, cur_tick, t, new_phases=[]):
+        if new_phases:
+            phases = new_phases[tls]
+        else:    
+            phases = self._get_all_tls_phases(tls)
         # total_duration = 120 # change to dynamic?
         total_duration = np.sum([p._duration for p in phases])
         res_tick = cur_tick % total_duration
@@ -105,4 +126,3 @@ class Belief:
             if controlled[i] == edge and  phase_at_t._phaseDef[i] == 'G':
                 light = 'G'
         return light
-
