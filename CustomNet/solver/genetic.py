@@ -6,9 +6,6 @@ from matplotlib import pyplot as plt
 from pprint import pprint as pp
 from math import floor
 
-#TODO: implement elitism, goes into crossover rate thingy
-
-
 ### GA
 
 # PROMOTION_RATE = POPULATION_SIZE * 0.25
@@ -16,7 +13,7 @@ from math import floor
 
 # POPULATION_SIZE = 6
 # CHROMOSOME_SIZE = 4
-MUTATION_RATE = 0.01  # Usually between  0.001 and 0.01.
+MUTATION_RATE = 0.1  # Usually between  0.001 and 0.01.
 CROSSOVER_RATE = 0.7
 CHOICES_TEST = [0, 1]
 # SEGMENT_SIZE = 5
@@ -24,25 +21,34 @@ CHOICES_TEST = [0, 1]
 
 class Chromosome:
 
-    def __init__(self, size, chromosome=[], belief=[], segment_size=1):
+    def __init__(self, size, chromosome=[], belief=[], segment_size=1, zeros=False):
         self.size = size
         self.SEGMENT_SIZE = segment_size
         if belief:
             self.belief = belief
         if len(chromosome) > 0:
             self.chromosome = chromosome
+        elif zeros:
+            self.chromosome = self.random_binary_chromosome(size)
         else:
             self.chromosome = self.random_binary_chromosome(size)
+        self.calculated_fitness = None
 
     # v2 
     def fitness(self):
         new_phases = self.decode()
+        # print('new phases ', new_phases)
+        # if self.calculated_fitness:
+            # print('ALREADY HAS FITNESS', self.calculated_fitness, ' cycle ', self.belief.time_cycle)
         fit_dict = np.sum(self.belief.calculate_load(self.belief.current_tick, self.belief.time_cycle, phases=new_phases, method=0, passes=True))
-        return np.sum(list(fit_dict.values()))
+        self.calculated_fitness = np.sum(list(fit_dict.values()))
+        # print('chrom ', self.chromosome ,'fitness ', self.calculated_fitness)
+        return self.calculated_fitness
 
     def decode(self):
+        # Calculate the delays
         delays = []
-        for i in range(int(self.size/self.SEGMENT_SIZE)): #16
+        for i in range(int(self.size/self.SEGMENT_SIZE)): #8
             phase_delay = -15
             for j in range(self.SEGMENT_SIZE): #5
                 phase_delay += self.chromosome[self.SEGMENT_SIZE*i+j] * 2**j
@@ -50,11 +56,18 @@ class Chromosome:
             delays.append(-phase_delay) 
         
         tls_phases = self.belief.tls_phases.copy()
+        # print('All delays ', delays)
+
         i = 0
-        for v in tls_phases.keys():
-            for p in tls_phases[v]:
-                p._duration += delays[i]
+        for k in tls_phases.keys():
+            for j in range(0, len(tls_phases[k]), 2):
+                # print('p1 {}, dur {}'.format(p._phaseDef, p._duration))
+                p = tls_phases[k][j]
+                p._duration = p._duration1 + delays[i]
+                # p._duration = 1
+
                 i += 1
+                # print('p2 {}, dur {}'.format(p._phaseDef, p._duration))
         return tls_phases
 
 
@@ -76,6 +89,9 @@ class Chromosome:
     def random_binary_chromosome(self, size):
         return np.array([rn.choice(CHOICES_TEST) for i in range(size)])
 
+    def zero_binary_chromosome(self, size):
+        return np.zeros(size) 
+        # np.array([rn.choice(CHOICES_TEST) for i in range(size)])
 
 class Genetic:
 
@@ -85,6 +101,8 @@ class Genetic:
         self.CHROMOSOME_SIZE = chromosome_size
         self.SEGMENT_SIZE = segment_size
         self.population = [Chromosome(chromosome_size*segment_size, segment_size=segment_size, belief=belief) for i in range(population_size)]
+        # self.population.extend([Chromosome(chromosome_size*segment_size, segment_size=segment_size, belief=belief, zeros=True) for i in range(3)])
+        self.evolution = []
         
     # 2 Fitness function
 
@@ -148,11 +166,16 @@ class Genetic:
     def find_best(self):
         best_fitness = 0
         best_chrom = None
-        for chrom in self.population:
-            chrom_fitness = chrom.fitness()
-            if chrom_fitness > best_fitness:
-                best_fitness = chrom_fitness
-                best_chrom = chrom
+        for pop in self.evolution:
+            print('best_fit', best_fitness)
+            for chrom in pop:
+                if chrom.calculated_fitness:
+                    chrom_fitness = chrom.calculated_fitness
+                else:
+                    chrom_fitness = chrom.fitness()
+                if chrom_fitness > best_fitness:
+                    best_fitness = chrom_fitness
+                    best_chrom = chrom
         return best_chrom
 
     def average_fitness(self, chromosomes):
@@ -160,14 +183,13 @@ class Genetic:
 
     def approximate(self, epochs=32, verbose=0):
         #         evolution = [self.selection() for _ in range(epochs)]
-        evolution = []
         counter = 0
         for _ in range(epochs):
             counter += 1
-            evolution.append(self.selection())
+            self.evolution.append(self.selection())
             if verbose > 0:
                 print('\r Epoch: {}/{}'.format(counter, epochs), end='')
-        return self.find_best(), evolution
+        return self.find_best(), self.evolution
 
 # if __name__ == "__main__":
     # gen = Genetic()

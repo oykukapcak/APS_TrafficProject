@@ -100,10 +100,13 @@ class Belief:
 
     # Get edge condition at time t
     def _get_edge_condition(self, tls, edge, cur_tick, t, new_phases=[]):
-        if new_phases:
-            phases = new_phases[tls]
-        else:    
-            phases = self._get_all_tls_phases(tls)
+        # if new_phases:
+        # print ('new garbage ', new_phases)
+        assert any(new_phases), 'shit empty yo'
+        phases = new_phases[tls]
+        # else:
+        #     print('SOME BULL SHIT ')    
+        #     phases = self._get_all_tls_phases(tls)
         # total_duration = 120 # change to dynamic?
         total_duration = np.sum([p._duration for p in phases])
         res_tick = cur_tick % total_duration
@@ -123,6 +126,6 @@ class Belief:
         controlled = [i.split('_')[0] for i in traci.trafficlight.getControlledLanes(tls)]
         light = 'r'
         for i in range(len(controlled)):
-            if controlled[i] == edge and  phase_at_t._phaseDef[i] == 'G':
+            if controlled[i] == edge and phase_at_t._phaseDef[i] == 'G':
                 light = 'G'
         return light

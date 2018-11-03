@@ -310,14 +310,16 @@ def start_ga():
     belief.traffic_light = traffic_light
     belief.current_tick = 0
     time_cycle = 120
+    skip = 300
+
     belief.time_cycle = time_cycle
     
     ga = genetic.Genetic()
-    ga.initial_population(population_size=20, chromosome_size=16, segment_size=5, belief=belief)
-    print('pop 0', ga.population[0].chromosome)
+    # ga.initial_population(population_size=10, chromosome_size=8, segment_size=5, belief=belief)
+    # print('pop 0', ga.population[0].chromosome)
     
-    # print('pop 0 decode', ga.population[0].decode())
-    print('fitness', ga.population[0].fitness())
+    # # print('pop 0 decode', ga.population[0].decode())
+    # print('fitness', ga.population[0].fitness())
 
 
     while traci.simulation.getMinExpectedNumber() > 0:
@@ -329,17 +331,32 @@ def start_ga():
         belief.addCars(traci.simulation.getDepartedIDList())
         belief.removeCars(traci.simulation.getArrivedIDList())
         
-        if step % time_cycle  == 0:
+        if step % time_cycle  == 0 and skip < step:
             if belief.hasCars():
                 traci_prints(belief)
-                load = belief.calculate_load(step, time_cycle, passes=True)
-                ga.initial_population(population_size=100, chromosome_size=16, segment_size=5, belief=belief)
-                print('total load: {}, {}'.format(np.sum(list(load.values())), load))
-                best, evo =  ga.approximate(epochs=16, verbose=1)
+
+                
+
+                # print('wadawda', traci.trafficlight.getCompleteRedYellowGreenDefinition('gneJ5'))
+
+                # ga.initial_population(population_size=20, chromosome_size=8, segment_size=5, belief=belief)
+                # best, evo =  ga.approximate(epochs=4, verbose=1)
+                
+
+                # # print('total load: {}, {}'.format(np.sum(list(load.values())), load))
+                # print('new fitness: ', best.fitness())
+                # fits = [[i.calculated_fitness for i in li] for li in evo]
+                # for i in fits:
+                #     print(i)
+                
+                # print('DECODED ', best.decode())
+                # load = belief.calculate_load(step, time_cycle, passes=True, phases=belief.tls_phases)
+                # print('total load1: {}, {}'.format(np.sum(list(load.values())), load))
+                # load2 = belief.calculate_load(step, time_cycle, phases=best.decode(), passes=True)
+                # print('total load2: {}, {}'.format(np.sum(list(load2.values())), load2))
                 # new_load = belief.calculate_load(step, time_cycle, phases=best.decode(), passes=True)
                 # print('new total load: {}, {}'.format(best_fitness), new_load))
-                print('new fitness: ', best.fitness())
-                # TODO: program runner
+
 
     traci.close()
     sys.stdout.flush()
@@ -364,7 +381,7 @@ def traci_prints(belief):
     tt = traci.lane.getTraveltime(lane)
     # print('wt {}, tt {}'.format(wt, tt))
     # print('total load: {}, {}'.format(np.sum(list(belief.load.values())), belief.load))
-    tls = 'gneJ6'
+    tls = 'gneJ5'
     complete = traci.trafficlight.getCompleteRedYellowGreenDefinition(tls)
     curprogram = traci.trafficlight.getRedYellowGreenState(tls)
     program = traci.trafficlight.getProgram(tls)
@@ -379,7 +396,7 @@ def traci_prints(belief):
 
 
     # print('{}, tls {}, speed {}, max {}, '.format(car, next_tls, speed, maxspeed))
-    # print('prog {}, phase {}, dur {}'.format(curprogram, phase, t))
+    print('prog {}, phase {}, dur {}'.format(curprogram, phase, dur))
     # print(type(complete[0].getPhases()), type(complete[0].getPhases()[0]), complete[0].getPhases()[0]._phaseDef)
     # print(complete[0].getPhases())
     

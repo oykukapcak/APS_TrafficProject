@@ -3,3 +3,10 @@ memory footprint
 different types of information for the solvers
 cars that wait longer turn red.
 lane coloring for load on network.
+
+meeting final
+- What can we learn from the policy/phases?
+- Comparison in traffic
+- Showing that its converging
+- Justify the Comparison
+- Putting a learning aspect to the genetic algorithm

@@ -1,14 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<!-- generated on 10/24/18 14:06:54 by Eclipse SUMO netedit Version 1.0.1
+<!-- generated on 11/01/18 11:47:10 by Eclipse SUMO netedit Version 1.0.1
 <configuration xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://sumo.dlr.de/xsd/netconvertConfiguration.xsd">
 
     <input>
-        <sumo-net-file value="C:\Users\work-02\Documents\git\APS_TrafficProject\complex_network_2.1.net.xml"/>
+        <sumo-net-file value="C:\Users\work-02\Documents\git\APS_TrafficProject\CustomNet\data\CustomNet.net.xml"/>
     </input>
 
     <output>
-        <output-file value="C:\Users\work-02\Documents\git\APS_TrafficProject\complex_network_2.4.net.xml"/>
+        <output-file value="C:\Users\work-02\Documents\git\APS_TrafficProject\CustomNet\data\CustomNet.net.xml"/>
     </output>
 
     <processing>
@@ -758,48 +758,48 @@
     </edge>
 
     <tlLogic id="gneJ10" type="static" programID="0" offset="0">
-        <phase duration="42" state="GGgrrGGG"/>
+        <phase duration="57" state="GGgrrGGG"/>
         <phase duration="3"  state="yyyrryyy"/>
-        <phase duration="42" state="rrrGGGrr"/>
+        <phase duration="57" state="rrrGGGrr"/>
         <phase duration="3"  state="rrryyyrr"/>
     </tlLogic>
     <tlLogic id="gneJ11" type="static" programID="0" offset="0">
-        <phase duration="42" state="GGGGr"/>
+        <phase duration="57" state="GGGGr"/>
         <phase duration="3"  state="yyyyr"/>
-        <phase duration="42" state="rrGGG"/>
+        <phase duration="57" state="rrGGG"/>
         <phase duration="3"  state="rryyy"/>
     </tlLogic>
     <tlLogic id="gneJ4" type="static" programID="0" offset="0">
-        <phase duration="78" state="GGGGg"/>
+        <phase duration="57" state="GGGGg"/>
         <phase duration="3"  state="yyyyg"/>
-        <phase duration="6"  state="rrrrG"/>
+        <phase duration="57" state="rrrrG"/>
         <phase duration="3"  state="rrrry"/>
     </tlLogic>
     <tlLogic id="gneJ5" type="static" programID="0" offset="0">
-        <phase duration="20" state="GGGGrrrrrrrrGGGGrrrrrrrr"/>
-        <phase duration="10" state="yyyyrrrrrrrryyyyrrrrrrrr"/>
-        <phase duration="20" state="rrrrGGrrrrrrrrrrGGrrrrrr"/>
-        <phase duration="10" state="rrrryyrrrrrrrrrryyrrrrrr"/>
-        <phase duration="20" state="rrrrrrGGGGrrrrrrrrGGGGrr"/>
-        <phase duration="10" state="rrrrrryyyyrrrrrrrryyyyrr"/>
-        <phase duration="20" state="rrrrrrrrrrGGrrrrrrrrrrGG"/>
-        <phase duration="10" state="rrrrrrrrrryyrrrrrrrrrryy"/>
+        <phase duration="27" state="GGGGrrrrrrrrGGGGrrrrrrrr"/>
+        <phase duration="3"  state="yyyyrrrrrrrryyyyrrrrrrrr"/>
+        <phase duration="27" state="rrrrGGrrrrrrrrrrGGrrrrrr"/>
+        <phase duration="3"  state="rrrryyrrrrrrrrrryyrrrrrr"/>
+        <phase duration="27" state="rrrrrrGGGGrrrrrrrrGGGGrr"/>
+        <phase duration="3"  state="rrrrrryyyyrrrrrrrryyyyrr"/>
+        <phase duration="27" state="rrrrrrrrrrGGrrrrrrrrrrGG"/>
+        <phase duration="3"  state="rrrrrrrrrryyrrrrrrrrrryy"/>
     </tlLogic>
     <tlLogic id="gneJ6" type="static" programID="0" offset="0">
-        <phase duration="42" state="GGGGGgrr"/>
+        <phase duration="57" state="GGGGGgrr"/>
         <phase duration="3"  state="yyyyyyrr"/>
-        <phase duration="42" state="GrrrrrGG"/>
+        <phase duration="57" state="GrrrrrGG"/>
         <phase duration="3"  state="yrrrrryy"/>
     </tlLogic>
     <tlLogic id="gneJ9" type="static" programID="0" offset="0">
-        <phase duration="20" state="GGGGrrrrrrrrGGGGrrrrrrrr"/>
-        <phase duration="10" state="yyyyrrrrrrrryyyyrrrrrrrr"/>
-        <phase duration="20" state="rrrrGGrrrrrrrrrrGGrrrrrr"/>
-        <phase duration="10" state="rrrryyrrrrrrrrrryyrrrrrr"/>
-        <phase duration="20" state="rrrrrrGGGGrrrrrrrrGGGGrr"/>
-        <phase duration="10" state="rrrrrryyyyrrrrrrrryyyyrr"/>
-        <phase duration="20" state="rrrrrrrrrrGGrrrrrrrrrrGG"/>
-        <phase duration="10" state="rrrrrrrrrryyrrrrrrrrrryy"/>
+        <phase duration="27" state="GGGGrrrrrrrrGGGGrrrrrrrr"/>
+        <phase duration="3"  state="yyyyrrrrrrrryyyyrrrrrrrr"/>
+        <phase duration="27" state="rrrrGGrrrrrrrrrrGGrrrrrr"/>
+        <phase duration="3"  state="rrrryyrrrrrrrrrryyrrrrrr"/>
+        <phase duration="27" state="rrrrrrGGGGrrrrrrrrGGGGrr"/>
+        <phase duration="3"  state="rrrrrryyyyrrrrrrrryyyyrr"/>
+        <phase duration="27" state="rrrrrrrrrrGGrrrrrrrrrrGG"/>
+        <phase duration="3"  state="rrrrrrrrrryyrrrrrrrrrryy"/>
     </tlLogic>
 
     <junction id="gneJ0" type="dead_end" x="-200.00" y="100.00" incLanes="" intLanes="" shape="-200.00,100.00 -200.00,87.20"/>
@@ -953,25 +953,25 @@
         <request index="1"  response="000000000000000000000000" foes="000000110000001100000000" cont="0"/>
         <request index="2"  response="000000000000000000000000" foes="111111110000111100000000" cont="0"/>
         <request index="3"  response="000000000000000000000000" foes="111111110000111100000000" cont="0"/>
-        <request index="4"  response="000000001111000000000000" foes="111100101111111100000000" cont="0"/>
+        <request index="4"  response="000000001111000000000000" foes="111100001111111100000000" cont="0"/>
         <request index="5"  response="000000001111000000000000" foes="111100001111111100000000" cont="0"/>
         <request index="6"  response="000000001100000000000000" foes="110000001100000000000000" cont="0"/>
         <request index="7"  response="000000001100000000000000" foes="110000001100000000000000" cont="0"/>
         <request index="8"  response="000000111100000000111111" foes="110000111100000000111111" cont="0"/>
         <request index="9"  response="000000111100000000111111" foes="110000111100000000111111" cont="0"/>
-        <request index="10" response="001111111100000000111100" foes="101111111100000000111100" cont="0"/>
+        <request index="10" response="001111111100000000111100" foes="001111111100000000111100" cont="0"/>
         <request index="11" response="001111111100000000111100" foes="001111111100000000111100" cont="0"/>
         <request index="12" response="000000000000000000000000" foes="001100000000000000110000" cont="0"/>
         <request index="13" response="000000000000000000000000" foes="001100000000000000110000" cont="0"/>
         <request index="14" response="000000000000000000000000" foes="111100000000111111110000" cont="0"/>
         <request index="15" response="000000000000000000000000" foes="111100000000111111110000" cont="0"/>
-        <request index="16" response="000000000000000000101111" foes="111100000000111100101111" cont="0"/>
+        <request index="16" response="000000000000000000001111" foes="111100000000111100001111" cont="0"/>
         <request index="17" response="000000000000000000001111" foes="111100000000111100001111" cont="0"/>
         <request index="18" response="000000000000000000001100" foes="000000000000110000001100" cont="0"/>
         <request index="19" response="000000000000000000001100" foes="000000000000110000001100" cont="0"/>
         <request index="20" response="000000111111000000111100" foes="000000111111110000111100" cont="0"/>
         <request index="21" response="000000111111000000111100" foes="000000111111110000111100" cont="0"/>
-        <request index="22" response="000000111100101111111100" foes="000000111100101111111100" cont="0"/>
+        <request index="22" response="000000111100001111111100" foes="000000111100001111111100" cont="0"/>
         <request index="23" response="000000111100001111111100" foes="000000111100001111111100" cont="0"/>
     </junction>
     <junction id="gneJ50" type="priority" x="300.00" y="-200.00" incLanes="gneE83_0 gneE86_0" intLanes=":gneJ50_0_0 :gneJ50_1_0" shape="303.20,-203.20 296.80,-203.20 296.80,-196.80 300.36,-197.51 301.60,-198.40 302.49,-199.64 303.02,-201.24">
@@ -996,25 +996,25 @@
         <request index="1"  response="000000000000000000000000" foes="000000110000001100000000" cont="0"/>
         <request index="2"  response="000000000000000000000000" foes="111111110000111100000000" cont="0"/>
         <request index="3"  response="000000000000000000000000" foes="111111110000111100000000" cont="0"/>
-        <request index="4"  response="000000101111000000000000" foes="111100101111111100000000" cont="0"/>
+        <request index="4"  response="000000001111000000000000" foes="111100001111111100000000" cont="0"/>
         <request index="5"  response="000000001111000000000000" foes="111100001111111100000000" cont="0"/>
         <request index="6"  response="000000001100000000000000" foes="110000001100000000000000" cont="0"/>
         <request index="7"  response="000000001100000000000000" foes="110000001100000000000000" cont="0"/>
         <request index="8"  response="000000111100000000111111" foes="110000111100000000111111" cont="0"/>
         <request index="9"  response="000000111100000000111111" foes="110000111100000000111111" cont="0"/>
-        <request index="10" response="101111111100000000111100" foes="101111111100000000111100" cont="0"/>
+        <request index="10" response="001111111100000000111100" foes="001111111100000000111100" cont="0"/>
         <request index="11" response="001111111100000000111100" foes="001111111100000000111100" cont="0"/>
         <request index="12" response="000000000000000000000000" foes="001100000000000000110000" cont="0"/>
         <request index="13" response="000000000000000000000000" foes="001100000000000000110000" cont="0"/>
         <request index="14" response="000000000000000000000000" foes="111100000000111111110000" cont="0"/>
         <request index="15" response="000000000000000000000000" foes="111100000000111111110000" cont="0"/>
-        <request index="16" response="000000000000000000001111" foes="111100000000111100101111" cont="0"/>
+        <request index="16" response="000000000000000000001111" foes="111100000000111100001111" cont="0"/>
         <request index="17" response="000000000000000000001111" foes="111100000000111100001111" cont="0"/>
         <request index="18" response="000000000000000000001100" foes="000000000000110000001100" cont="0"/>
         <request index="19" response="000000000000000000001100" foes="000000000000110000001100" cont="0"/>
         <request index="20" response="000000111111000000111100" foes="000000111111110000111100" cont="0"/>
         <request index="21" response="000000111111000000111100" foes="000000111111110000111100" cont="0"/>
-        <request index="22" response="000000111100001111111100" foes="000000111100101111111100" cont="0"/>
+        <request index="22" response="000000111100001111111100" foes="000000111100001111111100" cont="0"/>
         <request index="23" response="000000111100001111111100" foes="000000111100001111111100" cont="0"/>
     </junction>
 
