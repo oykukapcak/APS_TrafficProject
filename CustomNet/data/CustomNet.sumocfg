@@ -4,7 +4,8 @@
     <input>
         <net-file value="CustomNet.net.xml"/>
         <!-- <route-files value="CustomNet.rou.xml"/> -->
-        <route-files value="CustomNetCycle.rou.xml"/>
+        <!-- <route-files value="CustomNetCycle.rou.xml"/> -->
+        <route-files value="CustomNetConst.rou.xml"/>
         <!-- <additional-files value="CustomNetAdditionals.xml"/> -->
     </input>
     <time-to-teleport value="-1"/>

@@ -1,5 +1,6 @@
 import numpy as np
 import random as rn
+import copy
 import traci
 
 from matplotlib import pyplot as plt
@@ -21,21 +22,33 @@ CHOICES_TEST = [0, 1]
 
 class Chromosome:
 
-    def __init__(self, size, chromosome=[], belief=[], segment_size=1, zeros=False):
+    def __init__(self, size, chromosome=[], belief=[], segment_size=1):#, zeros=False):
         self.size = size
         self.SEGMENT_SIZE = segment_size
         if belief:
             self.belief = belief
         if len(chromosome) > 0:
             self.chromosome = chromosome
-        elif zeros:
-            self.chromosome = self.random_binary_chromosome(size)
+        # elif zeros:
+        #     self.chromosome = self.zero_binary_chromosome(size)
         else:
             self.chromosome = self.random_binary_chromosome(size)
-        self.calculated_fitness = None
+        self.calculated_fitness = False
+
+    def fitness(self):
+        if not self.calculated_fitness:
+            new_logics = self.decode()
+            # print(new_logics)
+            # print('size of dict', len(new_logics))
+            # print('fitness starting ', sum(self.belief.calculate_logic_fitness(self.belief.starting_logics).values()))
+            fitness = sum(self.belief.calculate_logic_fitness(new_logics).values())
+            self.calculated_fitness = fitness
+            # print('fitness chromosome ', fitness) 
+        return self.calculated_fitness
+
 
     # v2 
-    def fitness(self):
+    def fitness_v2(self):
         new_phases = self.decode()
         # print('new phases ', new_phases)
         # if self.calculated_fitness:
@@ -45,6 +58,7 @@ class Chromosome:
         # print('chrom ', self.chromosome ,'fitness ', self.calculated_fitness)
         return self.calculated_fitness
 
+    #v3 
     def decode(self):
         # Calculate the delays
         delays = []
@@ -55,26 +69,52 @@ class Chromosome:
             delays.append(phase_delay)
             delays.append(-phase_delay) 
         
-        tls_phases = self.belief.tls_phases.copy()
-        # print('All delays ', delays)
+        # Maybe skip deep copy if duration1 is used
+        tls_logics = copy.deepcopy(self.belief.starting_logics)
+        # print('All delays ', len(delays))
+        
 
         i = 0
-        for k in tls_phases.keys():
-            for j in range(0, len(tls_phases[k]), 2):
+        for tls in tls_logics.keys():
+            phases = tls_logics[tls].getPhases()
+            for j in range(0, len(phases), 2):
                 # print('p1 {}, dur {}'.format(p._phaseDef, p._duration))
-                p = tls_phases[k][j]
-                p._duration = p._duration1 + delays[i]
+                phases[j]._duration = phases[j]._duration + delays[i]
                 # p._duration = 1
-
-                i += 1
                 # print('p2 {}, dur {}'.format(p._phaseDef, p._duration))
-        return tls_phases
+                i += 1
+        return tls_logics
+
+    # def decode_v2(self):
+    #     # Calculate the delays
+    #     delays = []
+    #     for i in range(int(self.size/self.SEGMENT_SIZE)): #8
+    #         phase_delay = -15
+    #         for j in range(self.SEGMENT_SIZE): #5
+    #             phase_delay += self.chromosome[self.SEGMENT_SIZE*i+j] * 2**j
+    #         delays.append(phase_delay)
+    #         delays.append(-phase_delay) 
+        
+    #     tls_phases = self.belief.tls_phases.copy()
+    #     # print('All delays ', delays)
+
+    #     i = 0
+    #     for k in tls_phases.keys():
+    #         for j in range(0, len(tls_phases[k]), 2):
+    #             # print('p1 {}, dur {}'.format(p._phaseDef, p._duration))
+    #             p = tls_phases[k][j]
+    #             p._duration = p._duration1 + delays[i]
+    #             # p._duration = 1
+
+    #             i += 1
+    #             # print('p2 {}, dur {}'.format(p._phaseDef, p._duration))
+    #     return tls_phases
 
 
-    def fitness_test(self):
-        a = self.chromosome
-        x = 8 * a[0] + 4 * a[1] + 2 * a[2] + 1 * a[3]
-        return  15*x - x**2
+    # def fitness_test(self):
+    #     a = self.chromosome
+    #     x = 8 * a[0] + 4 * a[1] + 2 * a[2] + 1 * a[3]
+    #     return  15*x - x**2
 
     def crossover(self, other, x):
         n1 = np.concatenate((self.chromosome[:x], other.chromosome[x:]))
@@ -103,6 +143,7 @@ class Genetic:
         self.population = [Chromosome(chromosome_size*segment_size, segment_size=segment_size, belief=belief) for i in range(population_size)]
         # self.population.extend([Chromosome(chromosome_size*segment_size, segment_size=segment_size, belief=belief, zeros=True) for i in range(3)])
         self.evolution = []
+        rn.seed()
         
     # 2 Fitness function
 
@@ -167,7 +208,7 @@ class Genetic:
         best_fitness = 0
         best_chrom = None
         for pop in self.evolution:
-            print('best_fit', best_fitness)
+            # print('best_fit', best_fitness)
             for chrom in pop:
                 if chrom.calculated_fitness:
                     chrom_fitness = chrom.calculated_fitness
@@ -188,7 +229,10 @@ class Genetic:
             counter += 1
             self.evolution.append(self.selection())
             if verbose > 0:
-                print('\r Epoch: {}/{}'.format(counter, epochs), end='')
+                # print('\r Epoch: {}/{}'.format(counter, epochs), end='')
+                # print('\r Epoch: {}/{}'.format(counter, epochs), end='')
+                print('Epoch: {}, fitness {}'.format(counter, self.average_fitness(self.evolution[-1])))
+        print('Finished the approximation')
         return self.find_best(), self.evolution
 
 # if __name__ == "__main__":

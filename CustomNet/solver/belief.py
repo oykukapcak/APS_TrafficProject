@@ -3,11 +3,17 @@ import traci
 
 class Belief:
 
-    def __init__(self):
+    def __init__(self, traffic_light_list):
         self.cars = []
         self.network = {}
         self.load = {}
         self.tls_phases = self._init_tls_phases()
+        self.current_tick = 0
+        self.traffic_lights = traffic_light_list
+        self.controlled_lanes = self._get_controlled_lanes(traffic_light_list)
+        self.starting_logics = self._get_logic_per_tls()
+        self.halted_cars = {}
+        self.phase_mapping = self._get_phase_mapping()
 
     def _init_tls_phases(self):
         traffic_lights = ["gneJ4", "gneJ5", "gneJ6", "gneJ9", "gneJ10", "gneJ11"]
@@ -33,17 +39,44 @@ class Belief:
     def hasCars(self):
         return len(self.cars) > 0
 
-
+    def _get_controlled_lanes(self, traffic_lights): 
+        # Get controlled lanes
+        controlled_lanes = set()
+        for tls in self.traffic_lights:
+            for lane in traci.trafficlight.getControlledLanes(tls):
+                controlled_lanes.add(lane)
+        controlled_lanes = list(controlled_lanes)
+        return controlled_lanes
     
+    def _get_logic_per_tls(self):
+        logics = {}
+        for tls in self.traffic_lights:
+            logics[tls] = traci.trafficlight.getCompleteRedYellowGreenDefinition(tls)[0]
+        return logics
+
+    # Create mapping tls->phase->lanes
+    def _get_phase_mapping(self):
+        tls_d = {}
+        for tls, logic in self.starting_logics.items():
+            tls_lanes = traci.trafficlight.getControlledLanes(tls)
+            phases = logic.getPhases()
+            phase_book = {}
+            for p in phases:
+                phase_lanes = []
+                for i in range(len(p._phaseDef)):
+                    if p._phaseDef[i] == 'G' or p._phaseDef[i] == 'g':
+                        phase_lanes.append(tls_lanes[i])
+                phase_book[p._phaseDef] = list(set(phase_lanes))
+            tls_d[tls] = phase_book
+        # print(tls_d)
+        return tls_d
     ## Method 1
     # Get the state it is going to be after #ticks
     # + Get all of the states from that light
     # + Get the lane which the car is going to take while approaching the tls
     # + Get the light phase on time t. 
     # + Get the position in the phase of the light depending on the car's lane
-    ## Method 2
-    # Get waiting time
-
+    
     def calculate_load(self, cur_tick, t, phases=[], method=0, passes=False ):
         general_speed = 10 # Needs to be done dynamically
         # calculate the load per tls. Calculate how many cars are going to be waiting
@@ -73,6 +106,49 @@ class Belief:
         # self.load = load
         return load
     
+    ## Method 2
+    # + Get halted cars right now (SHOULD BE DONE ONCE)
+    # - Get mapping of phases to lanes
+    def get_halting_cars(self, phases=[]):
+        # print('Cur tick {}, has {} keys.'.format(self.current_tick, len(self.halted_cars.keys())))
+        assert len(self.traffic_lights) > 0
+
+        if self.current_tick not in self.halted_cars.keys():
+            halting_cars = {}
+            # (SHOULD BE DONE ONCE)
+            for lane in self.controlled_lanes:
+                halting_cars[lane] = traci.lane.getLastStepHaltingNumber(lane)
+                # halting_cars[lane] = traci.lane.getLastStepVehicleNumber(lane)
+
+            self.halted_cars[self.current_tick] = halting_cars
+        
+        return self.halted_cars[self.current_tick]
+
+    def calculate_logic_fitness(self, tls_logics):
+        # Get tls -> phase -> lanes
+        # For every tls logic
+        all_fitnesses = {}
+        halted = self.get_halting_cars()
+        actual_total = 0
+        for tls, logic in tls_logics.items():
+            # traci.trafficlight.getControlledLanes(tls)
+            phases = logic.getPhases()
+            for p in phases:
+                lanes = self.phase_mapping[tls][p._phaseDef]
+                # maybe floor
+                # print('tls {}, phase {}'.format(tls,p._phaseDef))
+                
+                for l in lanes:
+                    fitness = min(p._duration / 3.0, halted[l])
+                    all_fitnesses[l] = fitness
+                    actual_total += fitness
+                    # print('fitness {} for lane {}'.format(fitness, l))
+        # print('dict tot ', sum(all_fitnesses.values()))
+        # print('actual tot ', actual_total)
+        return all_fitnesses
+
+    # def get_cars_that_will_pass()
+
     def _get_approaching_lane(self, car, tls):
         controlled = [i.split('_')[0] for i in traci.trafficlight.getControlledLanes(tls)] #TODO: REMOVE 
         route = list(traci.vehicle.getRoute(car))
