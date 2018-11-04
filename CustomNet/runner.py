@@ -251,7 +251,6 @@ def plot(waiting_cars):
 
 
 def generate_routefile(N):
-    # TODO: Make scalable, not sure how
     random.seed()  # make tests reproducible by random.seed(some_number)
 
     with open("data/cross.rou.xml", "w") as routes:
@@ -300,6 +299,8 @@ def start_q_learning(epsilon, alpha, gamma, wait_time):
     time_step = 0
     step = 0
     total_waiting_time = 0
+    num_waiting_vehicles = 0
+    halting_cars = []
 
     # Traffic lights and lane area detectors are found from xml files. Directories might change.
     traffic_lights, detectors, actions = parse_xmls()
@@ -321,21 +322,20 @@ def start_q_learning(epsilon, alpha, gamma, wait_time):
             traci.simulationStep()
 
         step += wait_time
-        time_step += 1
 
         next_state = get_state(state_matrix, detectors, traffic_lights)
         reward = calc_reward(detectors)
         total_reward += reward
 
         # to plot the total number of cars waiting for every 100 time steps
-        if time_step < 10:
-            waiting_cars += -1 * reward
+        # if time_step < 10:
+        #    waiting_cars += -1 * reward
 
-        else:
-            waiting_cars += -1 * reward
-            waiting_cars_array.append(waiting_cars)
-            waiting_cars = 0
-            time_step = 0
+        # else:
+        #    waiting_cars += -1 * reward
+        #    waiting_cars_array.append(waiting_cars)
+        #    waiting_cars = 0
+        #    time_step = 0
 
         qtable = update_table(qtable, reward, state, actions, alpha, gamma, next_state)
         # print(qtable)
@@ -345,11 +345,30 @@ def start_q_learning(epsilon, alpha, gamma, wait_time):
         #print("*********** the state ****************")
         #print(state)
 
-        vehicles = traci.vehicle.getIDList()
+        controlled_lanes = []
+        for tls in traffic_lights:
+            for lane in traci.trafficlight.getControlledLanes(tls):
+                if lane not in controlled_lanes:
+                    controlled_lanes.append(lane)
+
+        cars = 0
+        if time_step < 3:
+            for lane in controlled_lanes:
+                cars += traci.lane.getLastStepHaltingNumber(lane)
+            time_step += 1
+
+        if time_step == 3:
+            halting_cars.append(cars)
+            time_step = 0
+
+
+        # vehicles = traci.vehicle.getIDList()
         # print(vehicles)
 
-        for i in range(len(vehicles)):
-            total_waiting_time += traci.vehicle.getWaitingTime(vehicles[i])
+        # for i in range(len(vehicles)):
+        #    total_waiting_time += traci.vehicle.getWaitingTime(vehicles[i])
+        #    #if traci.vehicle.getWaitingTime(vehicles[i]) > 0:
+        #    num_waiting_vehicles += 1
 
         # print("waiting time = %i" % total_waiting_time)
 
@@ -358,10 +377,16 @@ def start_q_learning(epsilon, alpha, gamma, wait_time):
         if epsilon > 0.05:
             epsilon *= 0.999  # this might be something else
 
-    print("total reward: %i" % total_reward)
-    print("total waiting time = %i" % total_waiting_time)
-    waiting_cars_array = np.hstack(waiting_cars_array)
-    plot(waiting_cars_array)
+    print("halting cars: ")
+    print(halting_cars)
+
+    # print("total reward: %i" % total_reward)
+    # print("total waiting time = %i" % total_waiting_time)
+    # average_waiting_time = total_waiting_time / num_waiting_vehicles
+    # print("num vehicles %i" % num_waiting_vehicles)
+    # print("average waiting time  = %i" % average_waiting_time)
+    # waiting_cars_array = np.hstack(waiting_cars_array)
+    # plot(waiting_cars_array)
     # print(rewards)
 
 
@@ -372,6 +397,9 @@ def start_original(wait_time):
     waiting_cars = 0
     time_step = 0
     step = 0
+    total_waiting_time = 0
+    num_waiting_vehicles = 0
+    halting_cars = []
 
     # Traffic lights and lane area detectors are found from xml files. Directories might change.
     traffic_lights, detectors, actions = parse_xmls()
@@ -380,34 +408,64 @@ def start_original(wait_time):
         # traci.simulationStep()
         # step += 1
         for i in range(wait_time):  # changing this makes difference
-
             traci.simulationStep()
 
         step += wait_time
-        time_step += 1
         reward = calc_reward(detectors)
         # print("reward: %i" % reward)
         total_reward += reward
 
         # to plot the total number of cars waiting for every 100 time steps
-        if time_step < 10:
-            waiting_cars += -1 * reward
+        # if time_step < 10:
+        #    waiting_cars += -1 * reward
 
-        else:
-            waiting_cars += -1 * reward
+        # else:
+        #    waiting_cars += -1 * reward
             # print("waiting_cars %i" % waiting_cars)
-            waiting_cars_array.append(waiting_cars)
-            waiting_cars = 0
+        #    waiting_cars_array.append(waiting_cars)
+        #    waiting_cars = 0
+        #    time_step = 0
+
+        # vehicles = traci.vehicle.getIDList()
+        # print(vehicles)
+
+        #for i in range(len(vehicles)):
+        #    total_waiting_time += traci.vehicle.getWaitingTime(vehicles[i])
+        #    #if traci.vehicle.getWaitingTime(vehicles[i]) > 0:
+        #    num_waiting_vehicles += 1
+
+        controlled_lanes = []
+        for tls in traffic_lights:
+            for lane in traci.trafficlight.getControlledLanes(tls):
+                if lane not in controlled_lanes:
+                    controlled_lanes.append(lane)
+
+        cars = 0
+        if time_step < 3:
+            for lane in controlled_lanes:
+                cars += traci.lane.getLastStepHaltingNumber(lane)
+            time_step += 1
+
+        if time_step == 3:
+            halting_cars.append(cars)
             time_step = 0
 
-    print("total reward: %i" % total_reward)
-    waiting_cars_array = np.hstack(waiting_cars_array)
-    plot(waiting_cars_array)
+    print("halting cars: ")
+    print(halting_cars)
+
+    # print("total reward: %i" % total_reward)
+    # waiting_cars_array = np.hstack(waiting_cars_array)
+    # plot(waiting_cars_array)
+
+    # print("total waiting time = %i" % total_waiting_time)
+    # average_waiting_time = total_waiting_time / num_waiting_vehicles
+    # print("num vehicles %i" % num_waiting_vehicles)
+    # print("average waiting time  = %i" % average_waiting_time)
 
 
 def run(algorithm):
     """execute the TraCI control loop"""
-    wait_time = 30
+    wait_time = 40
     if algorithm == 1:  # q-learning
         #inputs: epsilon, alpha, gamma
         start_q_learning(0.9, 0.1, 0.9, wait_time)
