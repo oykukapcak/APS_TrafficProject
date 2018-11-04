@@ -269,20 +269,39 @@ def start_original():
     waiting_cars = 0
     time_step = 0
     step = 0
-
+    traffic_lights = ["gneJ4", "gneJ5", "gneJ6", "gneJ9", "gneJ10", "gneJ11"]
+    belief = blf.Belief(traffic_lights)
+    skip = 0 
+    time_cycle = 120
+    
+    total_waiting = []
     while traci.simulation.getMinExpectedNumber() > 0:
         traci.simulationStep()
-        # step += 1
+        step += 1
+        belief.current_tick = step
+        belief.addCars(traci.simulation.getDepartedIDList())
+        belief.removeCars(traci.simulation.getArrivedIDList())
+        
+        if step % time_cycle == 0 and skip < step and np.sum(list(belief.get_halting_cars().values())) > 0:
+            if belief.hasCars():
+                total_waiting.append(np.sum(list(belief.get_halting_cars().values())))
+
+    print()
+    print('amount of cars waited ', np.sum(total_waiting))
+    print()
+    traci.close()
+    sys.stdout.flush()
+    return total_waiting
 
 def start_ga():
     """execute the TraCI control loop"""
     traffic_lights = ["gneJ4", "gneJ5", "gneJ6", "gneJ9", "gneJ10", "gneJ11"]
+    belief = blf.Belief(traffic_lights)
 
     step = 0
     halting_cars = []
     time_step = 0
     waiting_cars = 0
-    belief = blf.Belief(traffic_lights)
     belief.current_tick = 0
     time_cycle = 120
     skip = 0
@@ -350,6 +369,7 @@ def start_ga():
     print()
     traci.close()
     sys.stdout.flush()
+    return total_waiting
     # plt.plot(halting_cars)
     # plt.xlabel("time")
     # plt.ylabel("#waiting cars")
@@ -427,20 +447,22 @@ def set_new_logics(logics):
 
 def run(algorithm):
     """execute the TraCI control loop"""
-        
-    if algorithm == 99:  # q-learning
-        start_q_learning(0.9, 0.01, 0.01, 10)
+
+    results = None
+    if algorithm == 1:  # q-learning
+        results = start_original()
     elif algorithm == 2:
-        start_ga()
-    else:  # original
-        start_original()
+        results = start_ga()
+    # else:  # original
+    #     start_q_learning(0.9, 0.01, 0.01, 10)
 
     traci.close()
     sys.stdout.flush()
+    return results
 
 
 # this is the main entry point of this script
-def simulate_n_steps(N, gui_opt):
+def simulate_n_steps(algorithm, gui_opt):
     # this will start sumo as a server, then connect and run
     if gui_opt == 'nogui':
         sumoBinary = checkBinary('sumo')
@@ -455,4 +477,4 @@ def simulate_n_steps(N, gui_opt):
     traci.start([sumoBinary, "-c", "data/CustomNet.sumocfg", "--tripinfo-output",
                  "tripinfo.xml"])  # add ,"--emission-output","emissions.xml" if you want emissions report to be printed
 
-    run(2)  # enter the number for the algorithm to run
+    return run(algorithm)  # enter the number for the algorithm to run

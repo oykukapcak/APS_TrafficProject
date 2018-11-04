@@ -1,3 +1,4 @@
-import runner
+import sumo_runner
 
-runner.simulate_n_steps(1000, 'nogui')
+# 1 = normal, 2 = ga
+sumo_runner.simulate_n_steps(2, 'nogui')
